@@ -1,9 +1,9 @@
 <div align="center">
-  <img src="./public/tauri.svg" width="150" alt="CodeWalkers Logo" />
+  <img src="./logo.svg" width="150" alt="CodeWalkers Logo" />
   <h1>CodeWalkers</h1>
   <p><strong>A Desktop Virtual Companion powered by Tauri + React + Rust</strong></p>
 
-  [![CI](https://github.com/yourusername/CodeWalkers/actions/workflows/ci.yml/badge.svg)](https://github.com/yourusername/CodeWalkers/actions/workflows/ci.yml)
+  [![CI](https://github.com/you-want/CodeWalkers/actions/workflows/ci.yml/badge.svg)](https://github.com/you-want/CodeWalkers/actions/workflows/ci.yml)
   [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
   [![Tauri](https://img.shields.io/badge/Tauri-v2.0-24C8DB?logo=tauri)](https://tauri.app/)
   [![React](https://img.shields.io/badge/React-v19-61DAFB?logo=react)](https://react.dev/)
