@@ -16,6 +16,8 @@ export function CharacterWidget({
   size,
   initialX,
   setIsSelectOpen,
+  theme,
+  onThemeChange,
   isSoundsEnabled
 }: any) {
   const {
@@ -335,7 +337,7 @@ export function CharacterWidget({
       {isPopoverOpen && (
         <div className={`popover-panel popover-panel-${characterName}`}>
           <div className="popover-header">
-            <div className="popover-header-title">
+            <div className="popover-header-title" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <Select 
                 value={activeProviderName || (providers.length > 0 ? providers[0].name : "")} 
                 onValueChange={(val) => setActiveProviderName(val)}
@@ -348,6 +350,17 @@ export function CharacterWidget({
                   {providers.map((p: ProviderStatus) => (
                     <SelectItem key={p.name} value={p.name}>{p.name}</SelectItem>
                   ))}
+                </SelectContent>
+              </Select>
+              <Select value={theme} onValueChange={onThemeChange} onOpenChange={setIsSelectOpen}>
+                <SelectTrigger className="w-[110px] h-7 text-xs bg-transparent border-none shadow-none focus:ring-0 px-0 hover:bg-black/5 rounded">
+                  <SelectValue placeholder="Style" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="midnight">Midnight</SelectItem>
+                  <SelectItem value="peach">Peach</SelectItem>
+                  <SelectItem value="cloud">Cloud</SelectItem>
+                  <SelectItem value="moss">Moss</SelectItem>
                 </SelectContent>
               </Select>
             </div>

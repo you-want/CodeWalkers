@@ -7,6 +7,7 @@ function App() {
     showBruce,
     showJazz,
     theme,
+    setTheme,
     size,
     isSoundsEnabled,
     setIsSelectOpen,
@@ -20,6 +21,8 @@ function App() {
           size={size}
           initialX={window.innerWidth / 2 - 150}
           setIsSelectOpen={setIsSelectOpen}
+          theme={theme}
+          onThemeChange={setTheme}
           isSoundsEnabled={isSoundsEnabled}
         />
       )}
@@ -29,6 +32,8 @@ function App() {
           size={size}
           initialX={window.innerWidth / 2 + 50}
           setIsSelectOpen={setIsSelectOpen}
+          theme={theme}
+          onThemeChange={setTheme}
           isSoundsEnabled={isSoundsEnabled}
         />
       )}

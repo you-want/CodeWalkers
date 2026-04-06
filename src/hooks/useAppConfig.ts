@@ -139,6 +139,7 @@ export function useAppConfig() {
     showBruce,
     showJazz,
     theme,
+    setTheme,
     size,
     isSoundsEnabled,
     isSelectOpen,
