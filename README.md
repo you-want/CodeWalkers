@@ -82,7 +82,3 @@ pnpm tauri build
 - `logo.svg` - 矢量 Logo 源码
 
 ---
-
-## 📝 开发日志 (Implementation Log)
-
-关于项目的技术细节、Tauri 架构设计以及如何实现高精度透明穿透的更多技术内幕，请参考 [implementation_log.md](./implementation_log.md) 与 [tauri_plan.md](../tauri_plan.md)。
