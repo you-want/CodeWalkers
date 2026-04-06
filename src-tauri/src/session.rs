@@ -2,12 +2,13 @@ use std::process::Command;
 use std::sync::Mutex;
 use std::io::{BufReader, Write, Read};
 use std::collections::HashMap;
-use tauri::{AppHandle, Emitter, State};
-use portable_pty::{CommandBuilder, native_pty_system, PtySize};
+use tauri::{AppHandle, Emitter, Manager, State};
+use portable_pty::{Child, CommandBuilder, native_pty_system, PtySize};
 
 // 状态管理，保存子进程的 stdin 句柄
 pub struct SessionState {
     pub stdin_txs: Mutex<HashMap<String, Box<dyn Write + Send>>>,
+    pub children: Mutex<HashMap<String, Box<dyn Child + Send>>>,
 }
 
 fn get_shell_env() -> HashMap<String, String> {
@@ -47,6 +48,13 @@ fn get_shell_env() -> HashMap<String, String> {
 #[tauri::command]
 pub fn start_session(app: AppHandle, state: State<'_, SessionState>, session_id: String, binary_path: String) -> Result<(), String> {
     println!("Starting session {} with: {}", session_id, binary_path);
+
+    // If a session with the same id already exists, stop it first to avoid leaked child processes.
+    if let Some(mut old_child) = state.children.lock().unwrap().remove(&session_id) {
+        let _ = old_child.kill();
+        let _ = old_child.wait();
+    }
+    state.stdin_txs.lock().unwrap().remove(&session_id);
     
     let pty_system = native_pty_system();
     let pair = pty_system.openpty(PtySize {
@@ -95,13 +103,14 @@ pub fn start_session(app: AppHandle, state: State<'_, SessionState>, session_id:
         }
     }
 
-    let _child = pair.slave.spawn_command(cmd).map_err(|e| format!("Failed to spawn process: {}", e))?;
+    let child = pair.slave.spawn_command(cmd).map_err(|e| format!("Failed to spawn process: {}", e))?;
     
     let reader = pair.master.try_clone_reader().map_err(|e| format!("Failed to get reader: {}", e))?;
     let writer = pair.master.take_writer().map_err(|e| format!("Failed to get writer: {}", e))?;
 
     // 将 stdin 存入 state 以便后续发送数据
     state.stdin_txs.lock().unwrap().insert(session_id.clone(), writer);
+    state.children.lock().unwrap().insert(session_id.clone(), child);
 
     // 开启线程监听 stdout (PTY 合并了 stdout 和 stderr)
     let app_clone = app.clone();
@@ -119,10 +128,23 @@ pub fn start_session(app: AppHandle, state: State<'_, SessionState>, session_id:
                 }
                 Err(e) => {
                     eprintln!("Error reading from PTY: {}", e);
+                    app_clone
+                        .emit("session_error", format!("{}: {}", session_id_clone, e))
+                        .unwrap_or_default();
                     break;
                 }
             }
         }
+
+        // Ensure state is cleaned up when process exits or stream ends.
+        let session_state = app_clone.state::<SessionState>();
+        session_state.stdin_txs.lock().unwrap().remove(&session_id_clone);
+        if let Some(mut child) = session_state.children.lock().unwrap().remove(&session_id_clone) {
+            let _ = child.wait();
+        }
+        app_clone
+            .emit(&format!("session_ended_{}", session_id_clone), "")
+            .unwrap_or_default();
     });
 
     Ok(())
@@ -140,4 +162,16 @@ pub fn send_message(state: State<'_, SessionState>, session_id: String, message:
     } else {
         Err(format!("Session {} is not running", session_id))
     }
+}
+
+#[tauri::command]
+pub fn stop_session(state: State<'_, SessionState>, session_id: String) -> Result<(), String> {
+    state.stdin_txs.lock().unwrap().remove(&session_id);
+    if let Some(mut child) = state.children.lock().unwrap().remove(&session_id) {
+        child
+            .kill()
+            .map_err(|e| format!("Failed to kill session {}: {}", session_id, e))?;
+        let _ = child.wait();
+    }
+    Ok(())
 }

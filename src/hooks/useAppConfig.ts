@@ -2,10 +2,12 @@ import { useState, useEffect, useRef } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 
+export type ThemeName = "midnight" | "peach" | "cloud" | "moss";
+
 export function useAppConfig() {
   const [showBruce, setShowBruce] = useState(true);
   const [showJazz, setShowJazz] = useState(true);
-  const [theme, setTheme] = useState<string>("midnight");
+  const [theme, setTheme] = useState<ThemeName>("midnight");
   const [isSelectOpen, setIsSelectOpen] = useState(false);
 
   const [isSoundsEnabled, setIsSoundsEnabled] = useState(true);
@@ -17,10 +19,15 @@ export function useAppConfig() {
 
   const [size, setSize] = useState<"small" | "medium" | "large">("medium");
   const lastIgnoreState = useRef<boolean | null>(null);
+  const isCheckingMouseRef = useRef(false);
+  const pixelCanvasRef = useRef<HTMLCanvasElement | null>(null);
+  const pixelCtxRef = useRef<CanvasRenderingContext2D | null>(null);
 
   useEffect(() => {
     const checkMouse = async () => {
       if (isSelectOpen) return;
+      if (isCheckingMouseRef.current) return;
+      isCheckingMouseRef.current = true;
 
       try {
         const [x, y] = await invoke<[number, number]>("get_mouse_pos");
@@ -37,13 +44,17 @@ export function useAppConfig() {
             const rect = video.getBoundingClientRect();
             const videoX = x - rect.left;
             const videoY = y - rect.top;
-            
-            const canvas = document.createElement('canvas');
-            canvas.width = 1;
-            canvas.height = 1;
-            const ctx = canvas.getContext('2d', { willReadFrequently: true });
-            
-            if (ctx) {
+
+            if (rect.width > 0 && rect.height > 0) {
+              if (!pixelCanvasRef.current) {
+                pixelCanvasRef.current = document.createElement('canvas');
+                pixelCanvasRef.current.width = 1;
+                pixelCanvasRef.current.height = 1;
+                pixelCtxRef.current = pixelCanvasRef.current.getContext('2d', { willReadFrequently: true });
+              }
+
+              const ctx = pixelCtxRef.current;
+              if (ctx) {
               const scaleX = video.videoWidth / rect.width;
               const scaleY = video.videoHeight / rect.height;
               
@@ -58,6 +69,7 @@ export function useAppConfig() {
               
               if (alpha > 10) {
                 shouldIgnore = false;
+              }
               }
             }
           }
@@ -86,6 +98,8 @@ export function useAppConfig() {
         }
       } catch (e) {
         console.error("checkMouse error:", e);
+      } finally {
+        isCheckingMouseRef.current = false;
       }
     };
 
@@ -96,7 +110,7 @@ export function useAppConfig() {
       }
     }
 
-    const interval = setInterval(checkMouse, 30);
+    const interval = setInterval(checkMouse, 100);
 
     return () => {
       clearInterval(interval);

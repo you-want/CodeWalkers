@@ -1,7 +1,21 @@
 import { useState, useEffect, useRef } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
-import { ProviderStatus } from "../components/CharacterWidget";
+import type { ProviderStatus } from "../types/agent";
+
+const THINKING_PHRASES = [
+  "hmm...", "thinking...", "one sec...", "ok hold on",
+  "let me check", "working on it", "almost...", "bear with me",
+  "on it!", "gimme a sec", "brb", "processing...",
+  "hang tight", "just a moment", "figuring it out",
+  "crunching...", "reading...", "looking...",
+  "cooking...", "vibing...", "digging in",
+];
+
+const COMPLETION_PHRASES = [
+  "done!", "all set!", "ready!", "here you go", "got it!",
+  "finished!", "ta-da!", "voila!", "boom!",
+];
 
 export function useAgentSession(sessionId: string, isSoundsEnabled: boolean) {
   const [bubbleText, setBubbleText] = useState<string | null>(null);
@@ -19,24 +33,9 @@ export function useAgentSession(sessionId: string, isSoundsEnabled: boolean) {
   const isThinkingRef = useRef(false);
   const hasStartedOutputtingRef = useRef(false);
   const lastSentMessageRef = useRef("");
-  const completionTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const clearBubbleTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const thinkingIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const outputBufferRef = useRef<string>("");
-
-  const thinkingPhrases = [
-    "hmm...", "thinking...", "one sec...", "ok hold on",
-    "let me check", "working on it", "almost...", "bear with me",
-    "on it!", "gimme a sec", "brb", "processing...",
-    "hang tight", "just a moment", "figuring it out",
-    "crunching...", "reading...", "looking...",
-    "cooking...", "vibing...", "digging in"
-  ];
-
-  const completionPhrases = [
-    "done!", "all set!", "ready!", "here you go", "got it!",
-    "finished!", "ta-da!", "voila!", "boom!"
-  ];
 
   const playCompletionSound = () => {
     if (!isSoundsEnabledRef.current) return;
@@ -49,6 +48,7 @@ export function useAgentSession(sessionId: string, isSoundsEnabled: boolean) {
 
   const startSession = async (binaryPath: string) => {
     try {
+      await invoke("stop_session", { sessionId }).catch(() => {});
       await invoke("start_session", { sessionId, binaryPath });
       setIsSessionActive(true);
       setSessionOutput(prev => [...prev, `Started session with ${binaryPath}`]);
@@ -176,7 +176,7 @@ export function useAgentSession(sessionId: string, isSoundsEnabled: boolean) {
               });
             }
           }
-        } catch (e) {
+        } catch {
           const trimmedLine = line.trim();
           
           // Handle known progress noise by updating the bubble instead of ignoring
@@ -202,7 +202,7 @@ export function useAgentSession(sessionId: string, isSoundsEnabled: boolean) {
               isThinkingRef.current = false;
               hasStartedOutputtingRef.current = false;
               if (thinkingIntervalRef.current) clearInterval(thinkingIntervalRef.current);
-              const phrase = completionPhrases[Math.floor(Math.random() * completionPhrases.length)];
+              const phrase = COMPLETION_PHRASES[Math.floor(Math.random() * COMPLETION_PHRASES.length)];
               setBubbleText(phrase);
               setBubbleType('completion');
               playCompletionSound();
@@ -254,6 +254,14 @@ export function useAgentSession(sessionId: string, isSoundsEnabled: boolean) {
 
     const unlistenErr = listen<string>("session_error", (event) => {
       setSessionOutput(prev => [...prev, `[Err]: ${event.payload}`]);
+      if (event.payload.startsWith(`${sessionId}:`)) {
+        setIsSessionActive(false);
+      }
+    });
+
+    const unlistenEnded = listen<string>(`session_ended_${sessionId}`, () => {
+      setIsSessionActive(false);
+      setSessionOutput(prev => [...prev, `[System]: Session ended.`]);
     });
 
     invoke<ProviderStatus[]>("check_providers")
@@ -278,9 +286,11 @@ export function useAgentSession(sessionId: string, isSoundsEnabled: boolean) {
     return () => {
       unlistenOut.then(f => f());
       unlistenErr.then(f => f());
+      unlistenEnded.then(f => f());
+      invoke("stop_session", { sessionId }).catch(() => {});
       if (thinkingIntervalRef.current) clearInterval(thinkingIntervalRef.current);
-      if (completionTimeoutRef.current) clearTimeout(completionTimeoutRef.current);
-      if (clearBubbleTimeoutRef.current) clearTimeout(clearBubbleTimeoutRef.current);
+      const clearBubbleTimeout = clearBubbleTimeoutRef.current;
+      if (clearBubbleTimeout) clearTimeout(clearBubbleTimeout);
     };
   }, [sessionId]);
 
@@ -325,16 +335,16 @@ export function useAgentSession(sessionId: string, isSoundsEnabled: boolean) {
     outputBufferRef.current = ""; // clear buffer on new message
     
     // Force a "thinking" bubble immediately
-    const initialPhrase = thinkingPhrases[Math.floor(Math.random() * thinkingPhrases.length)];
+    const initialPhrase = THINKING_PHRASES[Math.floor(Math.random() * THINKING_PHRASES.length)];
     setBubbleText(initialPhrase);
     setBubbleType('thinking');
     
     if (thinkingIntervalRef.current) clearInterval(thinkingIntervalRef.current);
     thinkingIntervalRef.current = setInterval(() => {
       setBubbleText(prev => {
-        let next = thinkingPhrases[Math.floor(Math.random() * thinkingPhrases.length)];
-        while (next === prev && thinkingPhrases.length > 1) {
-          next = thinkingPhrases[Math.floor(Math.random() * thinkingPhrases.length)];
+        let next = THINKING_PHRASES[Math.floor(Math.random() * THINKING_PHRASES.length)];
+        while (next === prev && THINKING_PHRASES.length > 1) {
+          next = THINKING_PHRASES[Math.floor(Math.random() * THINKING_PHRASES.length)];
         }
         return next;
       });
@@ -343,10 +353,6 @@ export function useAgentSession(sessionId: string, isSoundsEnabled: boolean) {
     if (clearBubbleTimeoutRef.current) {
       clearTimeout(clearBubbleTimeoutRef.current);
     }
-    if (completionTimeoutRef.current) {
-      clearTimeout(completionTimeoutRef.current);
-    }
-    
     try {
       await invoke("send_message", { sessionId, message: text });
       setSessionOutput(prev => [...prev, `[You]: ${text}`]);

@@ -226,7 +226,7 @@ pub fn run() {
             let sounds_c = sounds_checked.clone();
             
             let _tray = TrayIconBuilder::with_id("main-tray")
-                .icon(app.default_window_icon().unwrap().clone())
+                .icon(app.default_window_icon().cloned().ok_or("Default window icon missing")?)
                 .menu(&menu)
                 .on_menu_event(move |app: &tauri::AppHandle, event| {
                     let id = event.id.as_ref();
@@ -271,29 +271,36 @@ pub fn run() {
                         *s = !*s;
                         let _ = sounds_item_clone.set_checked(*s);
                     } else if id == "quit" {
-                        std::process::exit(0);
+                        app.exit(0);
                     }
                     
                     app.emit("tray_event", id).unwrap_or_default();
                 })
                 .build(app)?;
 
-            let window = app.get_webview_window("main").unwrap();
-            
-            // Try to make the window cover the primary monitor
-            if let Ok(Some(monitor)) = window.primary_monitor() {
-                let size = monitor.size();
-                // Set size to full screen
-                window.set_size(*size).unwrap();
-                window.set_position(tauri::PhysicalPosition::new(0, 0)).unwrap();
+            if let Some(window) = app.get_webview_window("main") {
+                // Try to make the window cover the primary monitor
+                if let Ok(Some(monitor)) = window.primary_monitor() {
+                    let size = monitor.size();
+                    // Set size to full screen
+                    if let Err(e) = window.set_size(*size) {
+                        eprintln!("Failed setting window size: {}", e);
+                    }
+                    if let Err(e) = window.set_position(tauri::PhysicalPosition::new(0, 0)) {
+                        eprintln!("Failed setting window position: {}", e);
+                    }
+                } else if let Err(e) = window.maximize() {
+                    eprintln!("Failed maximizing window: {}", e);
+                }
             } else {
-                window.maximize().unwrap();
+                eprintln!("Main window not found during setup");
             }
 
             Ok(())
         })
         .manage(session::SessionState {
             stdin_txs: std::sync::Mutex::new(std::collections::HashMap::new()),
+            children: std::sync::Mutex::new(std::collections::HashMap::new()),
         })
         .plugin(tauri_plugin_opener::init())
         .invoke_handler(tauri::generate_handler![
@@ -303,6 +310,7 @@ pub fn run() {
             providers::install_provider,
             session::start_session,
             session::send_message,
+            session::stop_session,
             set_ignore_cursor_events,
             set_display_mode
         ])

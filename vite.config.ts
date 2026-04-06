@@ -16,6 +16,11 @@ export default defineConfig(async () => ({
     environment: "happy-dom",
     setupFiles: "./src/test/setup.ts",
     globals: true,
+    coverage: {
+      provider: "v8",
+      reporter: ["text", "html"],
+      reportsDirectory: "./coverage",
+    },
   },
 
   // Vite options tailored for Tauri development and only applied in `tauri dev` or `tauri build`
