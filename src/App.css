@@ -1,0 +1,394 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 221.2 83.2% 53.3%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 221.2 83.2% 53.3%;
+    --radius: 0.5rem;
+  }
+ 
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 217.2 91.2% 59.8%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 224.3 76.3% 48%;
+  }
+}
+
+:root {
+  font-family: Inter, Avenir, Helvetica, Arial, sans-serif;
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 400;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  /* Tauri 透明窗口必须保证 body 背景透明 */
+  background-color: transparent;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background-color: transparent;
+  /* 允许鼠标穿透（可选），稍后由逻辑控制 */
+  overflow: hidden;
+}
+
+.container {
+  margin: 0;
+  width: 100vw;
+  height: 100vh;
+  position: relative;
+  /* 移除测试背景色 */
+  background-color: transparent;
+  box-sizing: border-box;
+}
+
+.floating-widget {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  will-change: transform;
+}
+
+.agent-character {
+  width: 150px;
+  height: 150px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: grab;
+  user-select: none;
+  /* border and background removed for transparent video */
+  background-color: transparent;
+  border: none;
+  box-shadow: none;
+}
+
+.agent-character:active {
+  cursor: grabbing;
+}
+
+.emoji-avatar {
+  font-size: 3rem;
+  pointer-events: none;
+}
+
+/* 闲置动画：呼吸效果 */
+@keyframes idle-breathe {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05) translateY(-2px); }
+  100% { transform: scale(1); }
+}
+
+.agent-idle {
+  animation: idle-breathe 2s infinite ease-in-out;
+}
+
+/* 拖拽时的动画（可稍微前倾） */
+.agent-dragging {
+  transform: rotate(5deg) scale(1.05);
+  transition: transform 0.1s;
+}
+
+.bubble {
+  position: absolute;
+  bottom: calc(100% - 5px); /* Adjusted to be closer to the character */
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 12px 16px;
+  background-color: rgba(255, 255, 255, 0.95);
+  border-radius: 16px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+  font-weight: 500;
+  color: #333;
+  max-width: 250px;
+  text-align: center;
+  animation: bubble-fade-in 0.3s ease-out forwards;
+  white-space: nowrap;
+  z-index: 1001; /* Ensure bubble is above the popover */
+}
+
+@keyframes bubble-fade-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 10px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0) scale(1);
+  }
+}
+
+.popover-panel {
+  position: absolute;
+  bottom: calc(100% - 20px); /* Position above the character */
+  left: 50%;
+  transform: translateX(-50%);
+  width: 420px;
+  height: 310px;
+  background-color: rgba(240, 240, 240, 1);
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  color: #333;
+  z-index: 1000;
+  cursor: default;
+  overflow: hidden;
+  user-select: text; /* Ensure text inside the popover is selectable */
+  -webkit-user-select: text;
+}
+
+.popover-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 15px;
+  background-color: rgba(255, 255, 255, 0.3);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.popover-header-title {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-weight: 600;
+  font-size: 13px;
+  color: #444;
+}
+
+.popover-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.icon-btn {
+  background: transparent !important;
+  border: none !important;
+  padding: 4px !important;
+  color: #666;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px !important;
+}
+
+.icon-btn:hover {
+  background-color: rgba(0, 0, 0, 0.05) !important;
+  color: #333;
+}
+
+.popover-panel button {
+  background-color: #f0f0f0;
+  border: 1px solid #ddd;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.popover-panel button:hover:not(:disabled) {
+  background-color: #e0e0e0;
+}
+
+.popover-panel button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.terminal-output {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px 15px;
+  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+  font-size: 12px;
+  line-height: 1.5;
+  text-align: left;
+  background: transparent;
+  user-select: text; /* Allow user to select text in the terminal */
+  -webkit-user-select: text;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.terminal-output::-webkit-scrollbar {
+  width: 6px;
+}
+
+.terminal-output::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
+}
+
+.chat-input-container {
+  display: flex;
+  padding: 10px 15px;
+  background-color: rgba(255, 255, 255, 0.3);
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.chat-input-container input {
+  flex: 1;
+  padding: 8px 0;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-size: 13px;
+  color: #333;
+}
+
+.chat-input-container input::placeholder {
+  color: #888;
+}
+
+.chat-input-container button {
+  display: none; /* Hide send button, use enter */
+}
+
+/* --- Themes --- */
+
+/* Midnight */
+.theme-midnight .popover-panel {
+  background-color: rgba(18, 18, 18, 1.0);
+  color: white;
+  border: 1.5px solid rgba(255, 102, 0, 0.7);
+  border-radius: 12px;
+  font-family: monospace;
+}
+.theme-midnight .popover-header {
+  background-color: rgba(25, 25, 25, 1.0);
+  border-bottom: 1px solid rgba(255, 102, 0, 0.3);
+}
+.theme-midnight .popover-header-title { color: rgba(255, 102, 0, 1.0); font-weight: bold; }
+.theme-midnight .icon-btn { color: rgba(255, 102, 0, 1.0); }
+.theme-midnight .icon-btn:hover { background-color: rgba(255, 102, 0, 0.2) !important; }
+.theme-midnight .terminal-output { color: white; }
+.theme-midnight .chat-input-container { background-color: rgba(30, 30, 30, 1.0); border-top: 1px solid rgba(255, 102, 0, 0.3); }
+.theme-midnight .chat-input-container input { color: white; }
+.theme-midnight .chat-input-container input::placeholder { color: rgba(255, 255, 255, 0.6); }
+.theme-midnight .bubble {
+  background-color: rgba(25, 25, 25, 1.0);
+  color: rgba(178, 178, 178, 1.0);
+  border: 1px solid rgba(255, 102, 0, 0.6);
+  border-radius: 12px;
+  font-family: monospace;
+}
+
+/* Peach */
+.theme-peach .popover-panel {
+  background-color: rgba(255, 247, 234, 1.0);
+  color: rgba(51, 46, 56, 1.0);
+  border: 2.5px solid rgba(242, 140, 165, 0.8);
+  border-radius: 24px;
+}
+.theme-peach .popover-header {
+  background-color: rgba(250, 237, 224, 1.0);
+  border-bottom: 1px solid rgba(242, 140, 165, 0.25);
+}
+.theme-peach .popover-header-title { color: rgba(216, 89, 114, 1.0); font-weight: 800; }
+.theme-peach .icon-btn { color: rgba(216, 89, 114, 1.0); }
+.theme-peach .icon-btn:hover { background-color: rgba(242, 140, 165, 0.2) !important; }
+.theme-peach .terminal-output { color: rgba(51, 46, 56, 1.0); }
+.theme-peach .chat-input-container { background-color: rgba(255, 250, 242, 1.0); border-top: 1px solid rgba(242, 140, 165, 0.25); }
+.theme-peach .chat-input-container input { color: rgba(51, 46, 56, 1.0); }
+.theme-peach .chat-input-container input::placeholder { color: rgba(51, 46, 56, 0.5); }
+.theme-peach .bubble {
+  background-color: rgba(255, 242, 229, 1.0);
+  color: rgba(140, 127, 132, 1.0);
+  border: 1px solid rgba(242, 140, 165, 0.6);
+  border-radius: 14px;
+}
+
+/* Cloud */
+.theme-cloud .popover-panel {
+  background-color: rgba(239, 242, 244, 1.0);
+  color: rgba(38, 38, 51, 1.0);
+  border: 1px solid rgba(198, 204, 214, 0.6);
+  border-radius: 16px;
+}
+.theme-cloud .popover-header {
+  background-color: rgba(224, 229, 237, 1.0);
+  border-bottom: 1px solid rgba(204, 209, 216, 0.4);
+}
+.theme-cloud .popover-header-title { color: rgba(76, 76, 89, 1.0); font-weight: 600; }
+.theme-cloud .icon-btn { color: rgba(76, 76, 89, 1.0); }
+.theme-cloud .icon-btn:hover { background-color: rgba(198, 204, 214, 0.3) !important; }
+.theme-cloud .terminal-output { color: rgba(38, 38, 51, 1.0); }
+.theme-cloud .chat-input-container { background-color: white; border-top: 1px solid rgba(204, 209, 216, 0.4); }
+.theme-cloud .chat-input-container input { color: rgba(38, 38, 51, 1.0); }
+.theme-cloud .chat-input-container input::placeholder { color: rgba(127, 127, 140, 0.5); }
+.theme-cloud .bubble {
+  background-color: rgba(239, 242, 247, 1.0);
+  color: rgba(114, 119, 132, 1.0);
+  border: 1px solid rgba(0, 119, 214, 0.4);
+  border-radius: 12px;
+}
+
+/* Moss */
+.theme-moss .popover-panel {
+  background-color: rgba(209, 214, 198, 1.0);
+  color: rgba(25, 30, 20, 1.0);
+  border: 2px solid rgba(140, 147, 127, 0.8);
+  border-radius: 10px;
+}
+.theme-moss .popover-header {
+  background-color: rgba(183, 191, 173, 1.0);
+  border-bottom: 1px solid rgba(140, 147, 127, 0.5);
+}
+.theme-moss .popover-header-title { color: rgba(38, 43, 30, 1.0); font-weight: bold; }
+.theme-moss .icon-btn { color: rgba(38, 43, 30, 1.0); }
+.theme-moss .icon-btn:hover { background-color: rgba(140, 147, 127, 0.3) !important; }
+.theme-moss .terminal-output { color: rgba(25, 30, 20, 1.0); }
+.theme-moss .chat-input-container { background-color: rgba(224, 229, 214, 1.0); border-top: 1px solid rgba(140, 147, 127, 0.5); }
+.theme-moss .chat-input-container input { color: rgba(25, 30, 20, 1.0); }
+.theme-moss .chat-input-container input::placeholder { color: rgba(89, 96, 76, 0.5); }
+.theme-moss .bubble {
+  background-color: rgba(209, 214, 198, 1.0);
+  color: rgba(102, 107, 96, 1.0);
+  border: 1px solid rgba(140, 147, 127, 0.7);
+  border-radius: 8px;
+}
