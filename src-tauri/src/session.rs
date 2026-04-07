@@ -14,31 +14,41 @@ pub struct SessionState {
 fn get_shell_env() -> HashMap<String, String> {
     let mut env_map = HashMap::new();
     
-    // 静默运行 zsh -l -i 抓取环境变量
-    let output = Command::new("zsh")
-        .arg("-l")
-        .arg("-i")
-        .arg("-c")
-        .arg("echo '---ENV_START---' && env && echo '---ENV_END---'")
-        .output();
-        
-    if let Ok(out) = output {
-        let stdout = String::from_utf8_lossy(&out.stdout);
-        let mut in_env_block = false;
-        
-        for line in stdout.lines() {
-            if line == "---ENV_START---" {
-                in_env_block = true;
-                continue;
-            }
-            if line == "---ENV_END---" {
-                break;
-            }
-            if in_env_block {
-                if let Some((k, v)) = line.split_once('=') {
-                    env_map.insert(k.to_string(), v.to_string());
+    #[cfg(unix)]
+    {
+        // 静默运行 zsh -l -i 抓取环境变量
+        let output = Command::new("zsh")
+            .arg("-l")
+            .arg("-i")
+            .arg("-c")
+            .arg("echo '---ENV_START---' && env && echo '---ENV_END---'")
+            .output();
+            
+        if let Ok(out) = output {
+            let stdout = String::from_utf8_lossy(&out.stdout);
+            let mut in_env_block = false;
+            
+            for line in stdout.lines() {
+                if line == "---ENV_START---" {
+                    in_env_block = true;
+                    continue;
+                }
+                if line == "---ENV_END---" {
+                    break;
+                }
+                if in_env_block {
+                    if let Some((k, v)) = line.split_once('=') {
+                        env_map.insert(k.to_string(), v.to_string());
+                    }
                 }
             }
+        }
+    }
+    
+    #[cfg(windows)]
+    {
+        for (k, v) in std::env::vars() {
+            env_map.insert(k, v);
         }
     }
     

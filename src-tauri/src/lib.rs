@@ -38,24 +38,31 @@ fn get_mouse_pos(app: tauri::AppHandle, window: tauri::Window) -> Result<(f64, f
             Ok((client_x, client_y))
         }
         Err(e) => {
-            // Fallback to mouse-position crate if app.cursor_position fails
-            use mouse_position::mouse_position::Mouse;
-            match Mouse::get_mouse_position() {
-                Mouse::Position { x, y } => {
-                    // CoreGraphics on macOS returns logical points (x, y)
-                    let screen_x_logical = x as f64;
-                    let screen_y_logical = y as f64;
-                    
-                    let scale_factor = window.scale_factor().unwrap_or(1.0);
-                    let window_physical = window.inner_position().unwrap_or(tauri::PhysicalPosition::new(0, 0));
-                    let window_logical = window_physical.to_logical::<f64>(scale_factor);
-                    
-                    let client_x = screen_x_logical - window_logical.x;
-                    let client_y = screen_y_logical - window_logical.y;
-                    
-                    Ok((client_x, client_y))
+            #[cfg(target_os = "macos")]
+            {
+                // Fallback to mouse-position crate if app.cursor_position fails
+                use mouse_position::mouse_position::Mouse;
+                match Mouse::get_mouse_position() {
+                    Mouse::Position { x, y } => {
+                        // CoreGraphics on macOS returns logical points (x, y)
+                        let screen_x_logical = x as f64;
+                        let screen_y_logical = y as f64;
+                        
+                        let scale_factor = window.scale_factor().unwrap_or(1.0);
+                        let window_physical = window.inner_position().unwrap_or(tauri::PhysicalPosition::new(0, 0));
+                        let window_logical = window_physical.to_logical::<f64>(scale_factor);
+                        
+                        let client_x = screen_x_logical - window_logical.x;
+                        let client_y = screen_y_logical - window_logical.y;
+                        
+                        Ok((client_x, client_y))
+                    }
+                    Mouse::Error => Err(e.to_string())
                 }
-                Mouse::Error => Err(e.to_string())
+            }
+            #[cfg(not(target_os = "macos"))]
+            {
+                Err(e.to_string())
             }
         }
     }

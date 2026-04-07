@@ -42,7 +42,7 @@
 
 1. 克隆项目到本地：
    ```bash
-   git clone <your-repo-url>
+   git clone https://github.com/you-want/CodeWalkers.git
    cd CodeWalkers
    ```
 
