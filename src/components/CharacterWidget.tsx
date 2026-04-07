@@ -75,11 +75,11 @@ export function CharacterWidget({
 
   useEffect(() => {
     const handleGlobalClick = (e: MouseEvent) => {
-      // 避免点击事件发生在小人身上时，被全局的点击处理器给误关了
-      // 小人身上的点击由其自身的 onClick 事件来处理开关
+      // To avoid global click handlers from closing the popover when clicking the character,
+      // the character's own onClick event handles toggling.
       const target = e.target as HTMLElement;
       
-      // 如果点击的是当前小人本身，不在这里处理关闭，让 onClick 处理切换
+      // If clicking the current character itself, do not close here.
       if (target.closest(`.agent-character-${characterName}`)) {
         return;
       }
@@ -130,7 +130,7 @@ export function CharacterWidget({
       <div 
           className={`agent-character agent-character-${characterName} ${isDragging ? 'agent-dragging' : ''}`} 
           onMouseUp={() => {
-            // 只有当鼠标没有发生实际拖动时，才算作“点击”，切换弹窗状态
+            // Toggle popover only if no drag occurred
             if (!hasMoved) {
               setIsPopoverOpen(prev => !prev);
             }

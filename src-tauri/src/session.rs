@@ -3,7 +3,7 @@ use std::sync::Mutex;
 use std::collections::HashMap;
 use tauri::{AppHandle, Emitter, Manager, State};
 
-// 状态管理，保存子进程的 stdin 句柄
+// State management for holding child process stdin handles
 pub struct SessionState {
     pub binary_paths: Mutex<HashMap<String, String>>,
     pub children: Mutex<HashMap<String, Child>>,
@@ -14,7 +14,7 @@ fn get_shell_env() -> HashMap<String, String> {
     
     #[cfg(unix)]
     {
-        // 静默运行 zsh -l -i 抓取环境变量
+        // Run zsh silently to grab actual environment variables
         let output = Command::new("zsh")
             .arg("-l")
             .arg("-i")
@@ -84,7 +84,7 @@ pub fn send_message(app: AppHandle, state: State<'_, SessionState>, session_id: 
 
     let mut cmd = Command::new(&binary_path);
     
-    // 注入系统真实环境变量
+    // Inject actual system environment variables
     let shell_envs = get_shell_env();
     for (k, v) in shell_envs {
         cmd.env(k, v);
@@ -104,10 +104,10 @@ pub fn send_message(app: AppHandle, state: State<'_, SessionState>, session_id: 
         cmd.args(["-p", &message]);
     }
 
-    // 主动注入全局代理环境变量
-    // 首先尝试读取当前工作目录下的 .codewalkers.env
-    // 接着尝试读取父目录（因为 tauri dev 时当前目录是 src-tauri）
-    // 如果都不存在，再回退到读取 ~/.codewalkers.env
+    // Attempt to load environment variables from .codewalkers.env
+    // 1. Check current directory (e.g., when running compiled app)
+    // 2. Check parent directory (e.g., when running via tauri dev from src-tauri)
+    // 3. Fallback to user's HOME directory
     let current_dir = std::env::current_dir().unwrap_or_default();
     let env_file_local = current_dir.join(".codewalkers.env");
     let env_file_parent = current_dir.parent().unwrap_or(&current_dir).join(".codewalkers.env");
@@ -129,7 +129,7 @@ pub fn send_message(app: AppHandle, state: State<'_, SessionState>, session_id: 
                 let value = v.trim().trim_matches('"').trim_matches('\'');
                 cmd.env(key, value);
                 
-                // 对 Copilot 特殊处理：如果配了 GITHUB_TOKEN，也顺便设一下 COPILOT_GITHUB_TOKEN
+                // Copilot CLI compatibility: map GITHUB_TOKEN to required aliases
                 if key == "GITHUB_TOKEN" {
                     cmd.env("COPILOT_GITHUB_TOKEN", value);
                     cmd.env("GH_TOKEN", value);
@@ -151,7 +151,7 @@ pub fn send_message(app: AppHandle, state: State<'_, SessionState>, session_id: 
     let app_clone = app.clone();
     let session_id_clone = session_id.clone();
     
-    // 开启线程监听 stdout
+    // Start a thread to listen for stdout
     std::thread::spawn(move || {
         use std::io::Read;
         let mut buffer = [0u8; 1024];
@@ -180,7 +180,7 @@ pub fn send_message(app: AppHandle, state: State<'_, SessionState>, session_id: 
     let app_clone_err = app.clone();
     let session_id_clone_err = session_id.clone();
     
-    // 开启线程监听 stderr
+    // Start a thread to listen for stderr
     std::thread::spawn(move || {
         use std::io::Read;
         let mut buffer = [0u8; 1024];

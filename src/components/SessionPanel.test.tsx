@@ -44,7 +44,7 @@ describe("SessionPanel", () => {
     });
   });
 
-  it("复制最后一条输出到剪贴板", () => {
+  it("copies last output to clipboard", () => {
     const setSessionOutput = vi.fn();
     renderSessionPanel({ setSessionOutput });
 
@@ -53,7 +53,7 @@ describe("SessionPanel", () => {
     expect(setSessionOutput).toHaveBeenCalled();
   });
 
-  it("没有可复制输出时给出系统提示", () => {
+  it("shows system prompt when no output to copy", () => {
     const setSessionOutput = vi.fn();
     renderSessionPanel({ sessionOutput: [], setSessionOutput });
 
@@ -62,7 +62,7 @@ describe("SessionPanel", () => {
     expect(setSessionOutput).toHaveBeenCalled();
   });
 
-  it("provider 未安装时可触发安装", () => {
+  it("triggers install when provider is not installed", () => {
     const handleInstall = vi.fn(async () => {});
     const uninstalledProvider: ProviderStatus = { ...provider, is_installed: false };
     renderSessionPanel({ providers: [uninstalledProvider], handleInstall, isSessionActive: false });
@@ -71,7 +71,7 @@ describe("SessionPanel", () => {
     expect(handleInstall).toHaveBeenCalledWith("gemini", "Gemini");
   });
 
-  it("provider 已安装但会话未启动时可启动会话", () => {
+  it("starts session when provider is installed but session is stopped", () => {
     const startSession = vi.fn(async () => {});
     renderSessionPanel({ isSessionActive: false, startSession });
 
@@ -79,7 +79,7 @@ describe("SessionPanel", () => {
     expect(startSession).toHaveBeenCalledWith("/usr/local/bin/gemini");
   });
 
-  it("输入框回车会发送消息", () => {
+  it("sends message on Enter key", () => {
     const sendMessage = vi.fn(async () => {});
     const setInputText = vi.fn();
     renderSessionPanel({ inputText: "hello", setInputText, sendMessage, isSessionActive: true });
@@ -91,7 +91,7 @@ describe("SessionPanel", () => {
     expect(sendMessage).toHaveBeenCalled();
   });
 
-  it("点击重启按钮可重启会话", () => {
+  it("restarts session when clicking restart button", () => {
     const startSession = vi.fn(async () => {});
     renderSessionPanel({ startSession, isSessionActive: true });
 
@@ -99,7 +99,7 @@ describe("SessionPanel", () => {
     expect(startSession).toHaveBeenCalledWith("/usr/local/bin/gemini");
   });
 
-  it("渲染不同类型的消息", () => {
+  it("renders different types of messages", () => {
     renderSessionPanel({
       sessionOutput: [
         "[You]: hello",
