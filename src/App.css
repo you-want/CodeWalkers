@@ -171,6 +171,17 @@ body {
   }
 }
 
+@keyframes popoverIn {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, 10px) scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(-50%, 0) scale(1);
+  }
+}
+
 .popover-panel {
   position: absolute;
   bottom: calc(100% - 20px); /* Position above the character */
@@ -190,6 +201,8 @@ body {
   overflow: hidden;
   user-select: text; /* Ensure text inside the popover is selectable */
   -webkit-user-select: text;
+  animation: popoverIn 0.15s ease-out forwards;
+  transform-origin: bottom center;
 }
 
 .popover-header {
@@ -270,15 +283,15 @@ body {
 }
 
 .terminal-output::-webkit-scrollbar-thumb {
-  background-color: rgba(0, 0, 0, 0.2);
+  background-color: var(--scroll-thumb, rgba(0, 0, 0, 0.2));
   border-radius: 3px;
 }
 
 .chat-input-container {
   display: flex;
   padding: 10px 15px;
-  background-color: rgba(255, 255, 255, 0.3);
-  border-top: 1px solid rgba(0, 0, 0, 0.05);
+  background-color: var(--input-bg, rgba(255, 255, 255, 0.3));
+  border-top: 1px solid var(--border-color, rgba(0, 0, 0, 0.05));
 }
 
 .chat-input-container input {
@@ -288,21 +301,138 @@ body {
   border: none;
   outline: none;
   font-size: 13px;
-  color: #333;
+  color: inherit;
 }
 
 .chat-input-container input::placeholder {
-  color: #888;
+  color: inherit;
+  opacity: 0.5;
 }
 
 .chat-input-container button {
   display: none; /* Hide send button, use enter */
 }
 
-/* --- Themes --- */
+/* --- Message Styles --- */
+.message-user {
+  margin-top: 8px;
+  margin-bottom: 8px;
+  font-weight: bold;
+}
+.message-user .message-prefix {
+  color: var(--accent-color, #0078d6);
+  margin-right: 4px;
+}
+.message-user .message-content {
+  color: inherit;
+}
+
+.message-out {
+  margin-bottom: 8px;
+}
+.message-out pre {
+  background-color: var(--code-bg, rgba(0, 0, 0, 0.05));
+  padding: 8px;
+  border-radius: 4px;
+  overflow-x: auto;
+  margin: 4px 0;
+}
+.message-out code {
+  background-color: var(--code-bg, rgba(0, 0, 0, 0.05));
+  color: var(--accent-color, #0078d6);
+  padding: 2px 4px;
+  border-radius: 3px;
+}
+.message-out pre code {
+  color: inherit;
+  background-color: transparent;
+  padding: 0;
+}
+.message-out a {
+  color: var(--accent-color, #0078d6);
+  text-decoration: underline;
+}
+.message-out h1, .message-out h2, .message-out h3 {
+  color: var(--accent-color, #0078d6);
+  font-weight: bold;
+  margin-top: 8px;
+  margin-bottom: 4px;
+}
+.message-out ul, .message-out ol {
+  margin-left: 20px;
+  margin-bottom: 8px;
+}
+.message-out li::marker {
+  color: var(--accent-color, #0078d6);
+}
+
+.message-tool {
+  margin-bottom: 4px;
+}
+.message-tool .message-prefix {
+  color: var(--accent-color, #0078d6);
+  font-weight: bold;
+  margin-right: 4px;
+}
+.message-tool .message-content {
+  opacity: 0.7;
+}
+
+.message-tool-result {
+  margin-bottom: 4px;
+}
+.message-tool-result .message-prefix {
+  color: var(--success-color, #28a745);
+  font-weight: bold;
+  margin-right: 4px;
+}
+.message-tool-result .message-content {
+  opacity: 0.7;
+}
+
+.message-tool-fail {
+  margin-bottom: 4px;
+}
+.message-tool-fail .message-prefix {
+  color: var(--error-color, #d93326);
+  font-weight: bold;
+  margin-right: 4px;
+}
+.message-tool-fail .message-content {
+  opacity: 0.7;
+}
+
+.message-system {
+  opacity: 0.7;
+  margin-bottom: 4px;
+}
+.message-system .message-prefix {
+  font-weight: bold;
+  margin-right: 4px;
+}
+
+.message-error {
+  color: var(--error-color, #d93326);
+  margin-bottom: 4px;
+}
+.message-error .message-prefix {
+  font-weight: bold;
+  margin-right: 4px;
+}
+
+.message-raw {
+  margin-bottom: 4px;
+}
 
 /* Midnight */
 .theme-midnight .popover-panel {
+  --accent-color: rgba(255, 102, 0, 1.0);
+  --success-color: rgb(102, 166, 102);
+  --error-color: rgba(255, 77, 51, 1.0);
+  --input-bg: rgba(255, 255, 255, 0.05);
+  --border-color: rgba(255, 255, 255, 0.1);
+  --code-bg: rgba(255, 255, 255, 0.1);
+  --scroll-thumb: rgba(255, 255, 255, 0.2);
   background-color: rgba(18, 18, 18, 1.0);
   color: white;
   border: 1.5px solid rgba(255, 102, 0, 0.7);
@@ -320,6 +450,8 @@ body {
 .theme-midnight .chat-input-container { background-color: rgba(30, 30, 30, 1.0); border-top: 1px solid rgba(255, 102, 0, 0.3); }
 .theme-midnight .chat-input-container input { color: white; }
 .theme-midnight .chat-input-container input::placeholder { color: rgba(255, 255, 255, 0.6); }
+.theme-midnight .message-out pre { background-color: rgba(255, 255, 255, 0.1); }
+.theme-midnight .message-out code { background-color: rgba(255, 255, 255, 0.1); }
 .theme-midnight .bubble {
   background-color: rgba(25, 25, 25, 1.0);
   color: rgba(178, 178, 178, 1.0);
@@ -330,6 +462,9 @@ body {
 
 /* Peach */
 .theme-peach .popover-panel {
+  --accent-color: rgba(216, 89, 114, 1.0);
+  --success-color: rgb(76, 184, 128);
+  --error-color: rgba(216, 89, 114, 1.0);
   background-color: rgba(255, 247, 234, 1.0);
   color: rgba(51, 46, 56, 1.0);
   border: 2.5px solid rgba(242, 140, 165, 0.8);
@@ -355,6 +490,9 @@ body {
 
 /* Cloud */
 .theme-cloud .popover-panel {
+  --accent-color: rgb(0, 120, 214);
+  --success-color: rgb(51, 166, 76);
+  --error-color: rgb(214, 51, 51);
   background-color: rgba(239, 242, 244, 1.0);
   color: rgba(38, 38, 51, 1.0);
   border: 1px solid rgba(198, 204, 214, 0.6);
@@ -380,6 +518,9 @@ body {
 
 /* Moss */
 .theme-moss .popover-panel {
+  --accent-color: rgb(51, 56, 38);
+  --success-color: rgb(38, 102, 38);
+  --error-color: rgb(166, 76, 51);
   background-color: rgba(209, 214, 198, 1.0);
   color: rgba(25, 30, 20, 1.0);
   border: 2px solid rgba(140, 147, 127, 0.8);

@@ -1,5 +1,6 @@
 import { type Dispatch, type SetStateAction, useEffect, useRef } from "react";
 import { RefreshCcw, Copy } from "lucide-react";
+import ReactMarkdown from "react-markdown";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { ThemeName } from "../hooks/useAppConfig";
 import type { CharacterName, ProviderStatus } from "../types/agent";
@@ -29,6 +30,7 @@ interface SessionPanelProps {
   inputText: string;
   setInputText: Dispatch<SetStateAction<string>>;
   sendMessage: () => Promise<void>;
+  isPopoverOpen: boolean;
 }
 
 function HeaderSelectors({
@@ -86,15 +88,18 @@ export function SessionPanel({
   inputText,
   setInputText,
   sendMessage,
+  isPopoverOpen,
 }: SessionPanelProps) {
   const outputEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (outputEndRef.current) outputEndRef.current.scrollIntoView({ behavior: "smooth" });
-  }, [sessionOutput, isSessionActive]);
+    if (isPopoverOpen && outputEndRef.current) {
+      outputEndRef.current.scrollIntoView({ behavior: "auto" });
+    }
+  }, [sessionOutput, isSessionActive, isPopoverOpen]);
 
   return (
-    <div className={`popover-panel popover-panel-${characterName}`}>
+    <div className={`popover-panel popover-panel-${characterName}`} data-theme={theme}>
       <div className="popover-header">
         <HeaderSelectors
           activeProviderName={activeProviderName}
@@ -122,9 +127,9 @@ export function SessionPanel({
               if (lastOut) {
                 const textToCopy = lastOut.replace("[Out]: ", "").trim();
                 navigator.clipboard.writeText(textToCopy);
-                setSessionOutput((prev) => [...prev, "[System]: Copied last response to clipboard."]);
+                setSessionOutput((prev) => [...prev, "[System]: ✓ copied to clipboard"]);
               } else {
-                setSessionOutput((prev) => [...prev, "[System]: No response to copy."]);
+                setSessionOutput((prev) => [...prev, "[System]: nothing to copy yet"]);
               }
             }}
             title="Copy Last Response"
@@ -179,9 +184,72 @@ export function SessionPanel({
           }
           return (
             <>
-              {sessionOutput.length === 0
-                ? "Terminal output will appear here..."
-                : sessionOutput.map((line, i) => <div key={i}>{line}</div>)}
+              {sessionOutput.length === 0 ? (
+                <div className="text-dim">Terminal output will appear here...</div>
+              ) : (
+                sessionOutput.map((line, i) => {
+                  if (line.startsWith("[You]: ")) {
+                    return (
+                      <div key={i} className="message-user">
+                        <span className="message-prefix">{"> "}</span>
+                        <span className="message-content">{line.replace("[You]: ", "")}</span>
+                      </div>
+                    );
+                  }
+                  if (line.startsWith("[Out]: ")) {
+                    const content = line.replace("[Out]: ", "");
+                    return (
+                      <div key={i} className="message-out">
+                        <ReactMarkdown>{content}</ReactMarkdown>
+                      </div>
+                    );
+                  }
+                  if (line.startsWith("[Tool]: ")) {
+                    const toolContent = line.replace("[Tool]: ", "");
+                    return (
+                      <div key={i} className="message-tool">
+                        <span className="message-prefix">TOOL </span>
+                        <span className="message-content">{toolContent}</span>
+                      </div>
+                    );
+                  }
+                  if (line.startsWith("[Tool Result]: ")) {
+          const resultContent = line.replace("[Tool Result]: ", "");
+          return (
+            <div key={i} className="message-tool-result">
+              <span className="message-prefix">DONE </span>
+              <span className="message-content">{resultContent}</span>
+            </div>
+          );
+        }
+        if (line.startsWith("[Tool Fail]: ")) {
+          const failContent = line.replace("[Tool Fail]: ", "");
+          return (
+            <div key={i} className="message-tool-fail">
+              <span className="message-prefix">FAIL </span>
+              <span className="message-content">{failContent}</span>
+            </div>
+          );
+        }
+                  if (line.startsWith("[System]: ")) {
+                    return (
+                      <div key={i} className="message-system">
+                        <span className="message-prefix">SYSTEM </span>
+                        <span className="message-content">{line.replace("[System]: ", "")}</span>
+                      </div>
+                    );
+                  }
+                  if (line.startsWith("[Err]: ") || line.startsWith("[Error]: ")) {
+                    return (
+                      <div key={i} className="message-error">
+                        <span className="message-prefix">ERROR </span>
+                        <span className="message-content">{line.replace(/^\[Err(?:or)?\]: /, "")}</span>
+                      </div>
+                    );
+                  }
+                  return <div key={i} className="message-raw">{line}</div>;
+                })
+              )}
               <div ref={outputEndRef} />
             </>
           );

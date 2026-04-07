@@ -30,68 +30,80 @@ export function useAppConfig() {
       isCheckingMouseRef.current = true;
 
       try {
+        const isDevToolsOpen = await invoke<boolean>("is_devtools_open").catch(() => false);
+        
         const [x, y] = await invoke<[number, number]>("get_mouse_pos");
         
         const target = document.elementFromPoint(x, y) as HTMLElement | null;
-        if (!target) return;
-
+        
         let shouldIgnore = true;
 
-        if (target.closest('.agent-character')) {
-          const charEl = target.closest('.agent-character') as HTMLElement;
-          const media = charEl.querySelector('video') || charEl.querySelector('img');
-          if (media) {
-            const rect = media.getBoundingClientRect();
-            const mediaX = x - rect.left;
-            const mediaY = y - rect.top;
+        if (isDevToolsOpen) {
+          shouldIgnore = false;
+        } else if (!target) {
+          shouldIgnore = true;
+        } else {
+          if (target.closest('.agent-character')) {
+            const charEl = target.closest('.agent-character') as HTMLElement;
+            const media = charEl.querySelector('video') || charEl.querySelector('img');
+            if (media) {
+              const rect = media.getBoundingClientRect();
+              const mediaX = x - rect.left;
+              const mediaY = y - rect.top;
 
-            if (rect.width > 0 && rect.height > 0) {
-              if (!pixelCanvasRef.current) {
-                pixelCanvasRef.current = document.createElement('canvas');
-                pixelCanvasRef.current.width = 1;
-                pixelCanvasRef.current.height = 1;
-                pixelCtxRef.current = pixelCanvasRef.current.getContext('2d', { willReadFrequently: true });
-              }
+              if (rect.width > 0 && rect.height > 0) {
+                if (!pixelCanvasRef.current) {
+                  pixelCanvasRef.current = document.createElement('canvas');
+                  pixelCanvasRef.current.width = 1;
+                  pixelCanvasRef.current.height = 1;
+                  pixelCtxRef.current = pixelCanvasRef.current.getContext('2d', { willReadFrequently: true });
+                }
 
-              const ctx = pixelCtxRef.current;
-              if (ctx) {
-                const isVideo = media.tagName.toLowerCase() === 'video';
-                const naturalWidth = isVideo ? (media as HTMLVideoElement).videoWidth : (media as HTMLImageElement).naturalWidth;
-                const naturalHeight = isVideo ? (media as HTMLVideoElement).videoHeight : (media as HTMLImageElement).naturalHeight;
-                
-                if (naturalWidth > 0 && naturalHeight > 0) {
-                  const scaleX = naturalWidth / rect.width;
-                  const scaleY = naturalHeight / rect.height;
+                const ctx = pixelCtxRef.current;
+                if (ctx) {
+                  const isVideo = media.tagName.toLowerCase() === 'video';
+                  const naturalWidth = isVideo ? (media as HTMLVideoElement).videoWidth : (media as HTMLImageElement).naturalWidth;
+                  const naturalHeight = isVideo ? (media as HTMLVideoElement).videoHeight : (media as HTMLImageElement).naturalHeight;
                   
-                  ctx.clearRect(0, 0, 1, 1);
-                  ctx.drawImage(
-                    media, 
-                    mediaX * scaleX, mediaY * scaleY, 1, 1,
-                    0, 0, 1, 1
-                  );
-                  
-                  const pixel = ctx.getImageData(0, 0, 1, 1).data;
-                  const alpha = pixel[3];
-                  
-                  if (alpha > 10) {
-                    shouldIgnore = false;
+                  if (naturalWidth > 0 && naturalHeight > 0) {
+                    const scaleX = naturalWidth / rect.width;
+                    const scaleY = naturalHeight / rect.height;
+                    
+                    ctx.clearRect(0, 0, 1, 1);
+                    ctx.drawImage(
+                      media, 
+                      mediaX * scaleX, mediaY * scaleY, 1, 1,
+                      0, 0, 1, 1
+                    );
+                    
+                    const pixel = ctx.getImageData(0, 0, 1, 1).data;
+                    const alpha = pixel[3];
+                    
+                    if (alpha > 10) {
+                      shouldIgnore = false;
+                    }
                   }
                 }
               }
             }
           }
-        }
 
-        const isInteractive = target.closest('.bubble') || 
-                              target.closest('.popover-panel') || 
-                              target.closest('[data-radix-popper-content-wrapper]') ||
-                              target.closest('[role="listbox"]') ||
-                              target.closest('[data-radix-select-content]') ||
-                              target.closest('.radix-select-content') ||
-                              target.closest('div[role="dialog"]');
-        
-        if (isInteractive) {
-          shouldIgnore = false;
+          const isInteractive = target.closest('.bubble') || 
+                                target.closest('.popover-panel') || 
+                                target.closest('[data-radix-popper-content-wrapper]') ||
+                                target.closest('[role="listbox"]') ||
+                                target.closest('[data-radix-select-content]') ||
+                                target.closest('.radix-select-content') ||
+                                target.closest('div[role="dialog"]');
+          
+          if (isInteractive) {
+            shouldIgnore = false;
+          }
+
+          const computedStyle = window.getComputedStyle(target);
+          if (computedStyle.zIndex !== 'auto' && parseInt(computedStyle.zIndex) > 1000) {
+            shouldIgnore = false;
+          }
         }
 
         const debugInfo = document.getElementById('debug-info-overlay');

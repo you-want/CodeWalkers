@@ -69,6 +69,15 @@ fn get_mouse_pos(app: tauri::AppHandle, window: tauri::Window) -> Result<(f64, f
 }
 
 #[tauri::command]
+fn is_devtools_open(app: tauri::AppHandle) -> Result<bool, String> {
+    if let Some(window) = app.get_webview_window("main") {
+        Ok(window.is_devtools_open())
+    } else {
+        Err("Main window not found".to_string())
+    }
+}
+
+#[tauri::command]
 fn set_display_mode(app: tauri::AppHandle, mode: &str) -> Result<(), String> {
     if let Some(window) = app.get_webview_window("main") {
         if mode == "primary" {
@@ -129,7 +138,7 @@ pub fn run() {
             
             let sounds_item = CheckMenuItemBuilder::new("Sounds").id("sounds").checked(true).build(app)?;
             
-            let provider_status = providers::check_providers();
+            let provider_status = tauri::async_runtime::block_on(providers::check_providers());
             
             let mut provider_items = Vec::new();
             for p in provider_status {
@@ -306,7 +315,7 @@ pub fn run() {
             Ok(())
         })
         .manage(session::SessionState {
-            stdin_txs: std::sync::Mutex::new(std::collections::HashMap::new()),
+            binary_paths: std::sync::Mutex::new(std::collections::HashMap::new()),
             children: std::sync::Mutex::new(std::collections::HashMap::new()),
         })
         .plugin(tauri_plugin_opener::init())
@@ -319,6 +328,7 @@ pub fn run() {
             session::send_message,
             session::stop_session,
             set_ignore_cursor_events,
+            is_devtools_open,
             set_display_mode
         ])
         .run(tauri::generate_context!())

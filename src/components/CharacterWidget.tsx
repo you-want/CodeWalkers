@@ -66,6 +66,14 @@ export function CharacterWidget({
   }, [providers, activeProviderName]);
 
   useEffect(() => {
+    if (isPopoverOpen) {
+      import("@tauri-apps/api/event").then(({ emit }) => {
+        emit("refresh_providers");
+      });
+    }
+  }, [isPopoverOpen]);
+
+  useEffect(() => {
     const handleGlobalClick = (e: MouseEvent) => {
       // 避免点击事件发生在小人身上时，被全局的点击处理器给误关了
       // 小人身上的点击由其自身的 onClick 事件来处理开关
@@ -164,7 +172,7 @@ export function CharacterWidget({
         </div>
       )}
 
-      {isPopoverOpen && (
+      <div style={{ display: isPopoverOpen ? 'block' : 'none' }}>
         <SessionPanel
           characterName={characterName}
           activeProviderName={activeProviderName}
@@ -181,8 +189,9 @@ export function CharacterWidget({
           inputText={inputText}
           setInputText={setInputText}
           sendMessage={sendMessage}
+          isPopoverOpen={isPopoverOpen}
         />
-      )}
+      </div>
     </div>
   );
 }

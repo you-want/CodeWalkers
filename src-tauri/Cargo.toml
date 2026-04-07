@@ -4,6 +4,7 @@ version = "0.1.0"
 description = "A Tauri App"
 authors = ["you"]
 edition = "2021"
+default-run = "codewalkers"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -30,3 +31,7 @@ tauri-plugin-global-shortcut = "2.3.1"
 core-graphics = "0.25.0"
 mouse_position = "0.1.4"
 
+
+[[bin]]
+name = "test_check"
+path = "src/bin/test_check.rs"

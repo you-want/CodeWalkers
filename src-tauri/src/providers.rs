@@ -1,5 +1,6 @@
 use std::env;
 use std::path::PathBuf;
+use std::sync::OnceLock;
 
 /// 枚举支持的提供商
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
@@ -11,34 +12,37 @@ pub struct ProviderStatus {
 }
 
 fn get_shell_env_path() -> Option<String> {
-    let output = std::process::Command::new("zsh")
-        .arg("-l")
-        .arg("-i")
-        .arg("-c")
-        .arg("echo '---ENV_START---' && env && echo '---ENV_END---'")
-        .output()
-        .ok()?;
+    static SHELL_PATH: OnceLock<Option<String>> = OnceLock::new();
+    SHELL_PATH.get_or_init(|| {
+        let output = std::process::Command::new("zsh")
+            .arg("-l")
+            .arg("-i")
+            .arg("-c")
+            .arg("echo '---ENV_START---' && env && echo '---ENV_END---'")
+            .output()
+            .ok()?;
+            
+        let stdout = String::from_utf8_lossy(&output.stdout);
+        let mut in_env_block = false;
         
-    let stdout = String::from_utf8_lossy(&output.stdout);
-    let mut in_env_block = false;
-    
-    for line in stdout.lines() {
-        if line == "---ENV_START---" {
-            in_env_block = true;
-            continue;
-        }
-        if line == "---ENV_END---" {
-            break;
-        }
-        if in_env_block {
-            if let Some((k, v)) = line.split_once('=') {
-                if k == "PATH" {
-                    return Some(v.to_string());
+        for line in stdout.lines() {
+            if line == "---ENV_START---" {
+                in_env_block = true;
+                continue;
+            }
+            if line == "---ENV_END---" {
+                break;
+            }
+            if in_env_block {
+                if let Some((k, v)) = line.split_once('=') {
+                    if k == "PATH" {
+                        return Some(v.to_string());
+                    }
                 }
             }
         }
-    }
-    None
+        None
+    }).clone()
 }
 
 /// 探测指定二进制文件在系统 PATH 中是否存在
@@ -73,7 +77,7 @@ fn find_binary(binary_name: &str) -> Option<PathBuf> {
 }
 
 #[tauri::command]
-pub fn check_providers() -> Vec<ProviderStatus> {
+pub async fn check_providers() -> Vec<ProviderStatus> {
     let providers = vec![
         ("Claude", "claude"),
         ("Codex", "codex"),
@@ -82,6 +86,8 @@ pub fn check_providers() -> Vec<ProviderStatus> {
         ("OpenCode", "opencode"),
     ];
 
+    // Since we are async, we can spawn a blocking task if find_binary is heavy,
+    // but running it in the async context (Tauri's thread pool) is already off the main thread.
     providers.into_iter().map(|(name, binary)| {
         let path = find_binary(binary);
         ProviderStatus {
@@ -97,9 +103,10 @@ pub fn check_providers() -> Vec<ProviderStatus> {
 pub async fn install_provider(binary: String) -> Result<String, String> {
     let cmd = match binary.as_str() {
         "claude" => "curl -fsSL https://claude.ai/install.sh | sh",
-        "codex" => "npm install -g @openai/codex",
-        "copilot" => "brew install copilot-cli",
-        "gemini" => "npm install -g @google/gemini-cli",
+        "codex" => "sudo npm install -g @openai/codex",
+        "copilot" => "sudo npm install -g @github/copilot",
+        "gemini" => "sudo npm install -g @google/gemini-cli",
+        "opencode" => "sudo npm install -g opencode-ai",
         _ => return Err(format!("Unknown provider binary: {}", binary)),
     };
 
