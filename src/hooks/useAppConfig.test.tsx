@@ -20,7 +20,11 @@ describe("useAppConfig", () => {
     mockInvoke.mockReset();
     mockListen.mockReset();
 
-    mockInvoke.mockResolvedValue([0, 0]);
+    mockInvoke.mockImplementation((cmd: string) => {
+      if (cmd === "is_devtools_open") return Promise.resolve(false);
+      if (cmd === "get_mouse_pos") return Promise.resolve([0, 0]);
+      return Promise.resolve();
+    });
     mockListen.mockImplementation((_eventName: string, handler: (event: { payload: string }) => void) => {
       trayListener = handler;
       return Promise.resolve(() => {});
