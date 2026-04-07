@@ -138,4 +138,42 @@ describe("useAppConfig", () => {
 
     expect(mockInvoke).toHaveBeenCalledWith("set_ignore_cursor_events", { ignore: true });
   });
+
+  it("当开启开发者工具时会强制设置 ignore=false", async () => {
+    vi.useFakeTimers();
+    mockInvoke.mockImplementation((cmd: string) => {
+      if (cmd === "is_devtools_open") return Promise.resolve(true); // 模拟开启了 DevTools
+      if (cmd === "get_mouse_pos") return Promise.resolve([0, 0]);
+      return Promise.resolve();
+    });
+
+    const plain = document.createElement("div");
+    vi.spyOn(document, "elementFromPoint").mockReturnValue(plain);
+
+    renderHook(() => useAppConfig());
+
+    await act(async () => {
+      vi.advanceTimersByTime(120);
+      await Promise.resolve();
+    });
+
+    // 即使是非交互区域，但因为 DevTools 开着，必须设置 ignore=false 放行点击
+    expect(mockInvoke).toHaveBeenCalledWith("set_ignore_cursor_events", { ignore: false });
+  });
+
+  it("当鼠标悬浮在高 z-index 元素时会设置 ignore=false", async () => {
+    vi.useFakeTimers();
+    const highZIndexElement = document.createElement("div");
+    vi.spyOn(window, "getComputedStyle").mockReturnValue({ zIndex: "2000" } as CSSStyleDeclaration);
+    vi.spyOn(document, "elementFromPoint").mockReturnValue(highZIndexElement);
+
+    renderHook(() => useAppConfig());
+
+    await act(async () => {
+      vi.advanceTimersByTime(120);
+      await Promise.resolve();
+    });
+
+    expect(mockInvoke).toHaveBeenCalledWith("set_ignore_cursor_events", { ignore: false });
+  });
 });

@@ -21,8 +21,8 @@ export default defineConfig(async () => ({
       reporter: ["text", "html"],
       reportsDirectory: "./coverage",
       thresholds: {
-        lines: 60,
-        statements: 60,
+        lines: 75,
+        statements: 75,
       },
     },
   },

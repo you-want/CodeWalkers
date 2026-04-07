@@ -90,4 +90,40 @@ describe("SessionPanel", () => {
     fireEvent.keyDown(screen.getByPlaceholderText("Ask Gemini..."), { key: "Enter" });
     expect(sendMessage).toHaveBeenCalled();
   });
+
+  it("点击重启按钮可重启会话", () => {
+    const startSession = vi.fn(async () => {});
+    renderSessionPanel({ startSession, isSessionActive: true });
+
+    fireEvent.click(screen.getByTitle("Restart Session"));
+    expect(startSession).toHaveBeenCalledWith("/usr/local/bin/gemini");
+  });
+
+  it("渲染不同类型的消息", () => {
+    renderSessionPanel({
+      sessionOutput: [
+        "[You]: hello",
+        "[Out]: world",
+        "[Tool]: run ls",
+        "[Tool Result]: success",
+        "[Tool Fail]: error",
+        "[System]: init",
+        "[Err]: crash",
+      ],
+    });
+
+    expect(screen.getByText(">")).toBeInTheDocument();
+    expect(screen.getByText("hello")).toBeInTheDocument();
+    expect(screen.getByText("world")).toBeInTheDocument();
+    expect(screen.getByText("TOOL")).toBeInTheDocument();
+    expect(screen.getByText("run ls")).toBeInTheDocument();
+    expect(screen.getByText("DONE")).toBeInTheDocument();
+    expect(screen.getByText("success")).toBeInTheDocument();
+    expect(screen.getByText("FAIL")).toBeInTheDocument();
+    expect(screen.getByText("error")).toBeInTheDocument();
+    expect(screen.getByText("SYSTEM")).toBeInTheDocument();
+    expect(screen.getByText("init")).toBeInTheDocument();
+    expect(screen.getByText("ERROR")).toBeInTheDocument();
+    expect(screen.getByText("crash")).toBeInTheDocument();
+  });
 });
