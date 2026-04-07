@@ -105,14 +105,34 @@ pub fn send_message(app: AppHandle, state: State<'_, SessionState>, session_id: 
     }
 
     // 主动注入全局代理环境变量
-    if let Some(home) = dirs::home_dir() {
-        let env_file = home.join(".codewalkers.env");
-        if let Ok(env_content) = std::fs::read_to_string(env_file) {
-            for line in env_content.lines() {
-                let trimmed = line.trim();
-                if trimmed.is_empty() || trimmed.starts_with('#') { continue; }
-                if let Some((k, v)) = trimmed.split_once('=') {
-                    cmd.env(k.trim(), v.trim().trim_matches('"').trim_matches('\''));
+    // 首先尝试读取当前工作目录下的 .codewalkers.env
+    // 接着尝试读取父目录（因为 tauri dev 时当前目录是 src-tauri）
+    // 如果都不存在，再回退到读取 ~/.codewalkers.env
+    let current_dir = std::env::current_dir().unwrap_or_default();
+    let env_file_local = current_dir.join(".codewalkers.env");
+    let env_file_parent = current_dir.parent().unwrap_or(&current_dir).join(".codewalkers.env");
+    
+    let env_file = if env_file_local.exists() {
+        env_file_local
+    } else if env_file_parent.exists() {
+        env_file_parent
+    } else {
+        std::path::PathBuf::from(std::env::var("HOME").unwrap_or_default()).join(".codewalkers.env")
+    };
+
+    if let Ok(env_content) = std::fs::read_to_string(&env_file) {
+        for line in env_content.lines() {
+            let trimmed = line.trim();
+            if trimmed.is_empty() || trimmed.starts_with('#') { continue; }
+            if let Some((k, v)) = trimmed.split_once('=') {
+                let key = k.trim();
+                let value = v.trim().trim_matches('"').trim_matches('\'');
+                cmd.env(key, value);
+                
+                // 对 Copilot 特殊处理：如果配了 GITHUB_TOKEN，也顺便设一下 COPILOT_GITHUB_TOKEN
+                if key == "GITHUB_TOKEN" {
+                    cmd.env("COPILOT_GITHUB_TOKEN", value);
+                    cmd.env("GH_TOKEN", value);
                 }
             }
         }
