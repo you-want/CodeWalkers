@@ -1,0 +1,10 @@
+#!/usr/bin/env sh
+
+# Run lint-staged to auto-fix and check staged files
+pnpm exec lint-staged
+
+# Run typecheck
+pnpm run typecheck
+
+# Run tests
+pnpm run test
