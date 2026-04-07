@@ -29,6 +29,8 @@ dist-ssr
 # Environment files
 .env
 .env.*
+.codewalkers.env
+!.codewalkers.env.example
 
 # Private/Secrets
 *.pem
