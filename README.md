@@ -3,6 +3,10 @@
   <h1>CodeWalkers</h1>
   <p><strong>A Desktop Virtual Companion powered by Tauri + React + Rust</strong></p>
 
+  <p>
+    <a href="./README_zh.md">中文</a> | <span>English</span>
+  </p>
+
   [![CI](https://github.com/you-want/CodeWalkers/actions/workflows/ci.yml/badge.svg)](https://github.com/you-want/CodeWalkers/actions/workflows/ci.yml)
   [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
   [![Tauri](https://img.shields.io/badge/Tauri-v2.0-24C8DB?logo=tauri)](https://tauri.app/)
@@ -11,89 +15,114 @@
 
 ---
 
-## 📖 项目简介 (Introduction)
+## 📖 Introduction
 
-**CodeWalkers** 是一个跨平台的桌面虚拟陪伴助手。它会在你的电脑屏幕下方（Dock 栏上）自由漫步，并随时准备通过内置的终端与你进行交互。
+**CodeWalkers** is a cross-platform desktop virtual companion assistant. It freely wanders at the bottom of your screen (above the Dock/Taskbar) and is always ready to interact with you via its built-in terminal.
 
-本项目基于强大的 **Tauri v2** 架构，使用 **Rust** 编写高性能、低资源占用的后端逻辑，使用 **React + TypeScript** 构建精美的透明前端界面。它是原版 `Lil Agents` 概念的全面现代化、跨平台复刻与升级版。
+Powered by the robust **Tauri v2** architecture, it leverages **Rust** for high-performance, low-resource backend logic, and **React + TypeScript** for a beautiful, transparent frontend interface. It is a fully modernized, cross-platform reimagining and upgrade of the original `Lil Agents` concept.
 
-### ✨ 核心特性 (Key Features)
+### ✨ Key Features
 
-- **🏃‍♂️ 桌面虚拟陪伴**：角色会在屏幕下方自由漫游，有真实的行走动画与休息状态。
-- **🖱️ 像素级点击穿透**：采用高精度 Canvas Alpha 检测技术。点击角色实体时可以拖拽，点击角色旁边的透明区域时，鼠标事件会完美穿透到你的桌面或后面的软件。
-- **🖥️ 沉浸式 AI 终端 (PTY)**：内置基于 `portable-pty` 的真实系统终端会话，完美集成 Gemini CLI，你可以直接在应用内发送消息，并得到实时的思考气泡和打字机反馈。
-- **🎵 原生音效反馈**：发送消息、接收回复以及角色巡游到达终点时，都会有清脆的提示音。
-- **🎨 多角色与主题系统**：
-  - 支持一键切换角色（Ethan / Luna）。
-  - 支持四种不同的终端主题风格：`Midnight` (默认)、`Peach`、`Cloud`、`Moss`。
-- **🚀 极低资源占用**：得益于 Tauri 和 Rust 的组合，它的内存占用极小，相比 Electron 更加轻量。
+- **🏃‍♂️ Desktop Virtual Companion**: Characters roam freely at the bottom of the screen with realistic walking animations and resting states.
+- **🖱️ Pixel-Perfect Click-Through**: Utilizes high-precision Canvas Alpha detection. Clicking the character's solid body allows you to drag it, while clicks on the transparent areas around the character perfectly pierce through to your desktop or underlying applications.
+- **🖥️ Immersive AI Terminal (PTY)**: Features a built-in real system terminal session based on `portable-pty`, seamlessly integrating the Gemini CLI. You can send messages directly within the app and receive real-time thinking bubbles and typewriter-style feedback.
+- **🎵 Native Sound Feedback**: Crisp sound effects play when sending messages, receiving replies, or when a character finishes its patrol.
+- **🎨 Multi-Character & Theme System**:
+  - One-click character switching (Ethan / Luna).
+  - Four different terminal theme styles: `Midnight` (Default), `Peach`, `Cloud`, `Moss`.
+- **🚀 Extremely Low Resource Usage**: Thanks to the combination of Tauri and Rust, its memory footprint is minimal, making it significantly more lightweight than Electron alternatives.
 
 ---
 
-## 🛠️ 安装与运行 (Getting Started)
+## 🛠️ Getting Started
 
-### 环境要求 (Prerequisites)
+### Prerequisites
 
-- [Node.js](https://nodejs.org/) (版本 >= 22.0.0)
-- [pnpm](https://pnpm.io/) (版本 >= 10.0.0) - **本项目严格限制仅使用 pnpm**
-- [Rust](https://www.rust-lang.org/) (最新稳定版)
+- [Node.js](https://nodejs.org/) (Version >= 22.0.0)
+- [pnpm](https://pnpm.io/) (Version >= 10.0.0) - **This project strictly requires pnpm**
+- [Rust](https://www.rust-lang.org/) (Latest stable version)
 
-### 本地开发 (Development)
+### Development
 
-1. 克隆项目到本地：
+1. Clone the repository:
    ```bash
    git clone https://github.com/you-want/CodeWalkers.git
    cd CodeWalkers
    ```
 
-2. 安装依赖：
+2. Install dependencies:
    ```bash
-   # 必须使用 pnpm，使用 npm 或 yarn 会被拦截
+   # You MUST use pnpm; npm or yarn will be blocked
    pnpm install
    ```
 
-3. 环境变量配置 (可选)：
-   如果你需要使用内置的 Gemini CLI 助手功能，请在根目录创建一个 `.env` 文件并填入你的 API Key：
+3. Environment Variables (Optional):
+   If you need to use the built-in Gemini CLI assistant, create a `.env` file in the root directory and add your API Key:
    ```env
    GEMINI_API_KEY=your_api_key_here
    ```
 
-4. 启动开发服务器：
+4. Start the development server:
    ```bash
    pnpm tauri dev
    ```
-   > 首次启动时，Rust 编译器会下载并编译依赖，可能需要花费几分钟时间。之后的启动会非常快。
+   > On the first run, the Rust compiler will download and build dependencies, which may take a few minutes. Subsequent starts will be much faster.
 
-### 构建发布版本 (Build)
+### Build
 
-如果你想打包一个可独立运行的跨平台 App 给别人使用：
+If you want to package a standalone cross-platform application for distribution:
 
 ```bash
 pnpm tauri build
 ```
-编译产物将会生成在 `src-tauri/target/release/bundle` 目录下（如 macOS 的 `.app` / `.dmg`，Windows 的 `.exe` 等）。
+The compiled binaries will be generated in the `src-tauri/target/release/bundle` directory (e.g., `.app` / `.dmg` for macOS, `.exe` for Windows).
 
 ---
 
-## 🎮 使用指南 (How to use)
+## 🎮 User Operation Manual
 
-1. **拖拽角色**：将鼠标光标移动到小人身上，按住左键即可随意在屏幕内拖拽。
-2. **呼出/隐藏终端**：小人旁边会跟随一个终端面板，点击外部空白区域可自动收起。
-3. **切换角色与主题**：在右侧终端面板的顶部，有两个下拉菜单，分别用于切换“角色”和“终端主题”。
-4. **清屏指令**：在终端输入框内输入 `/clear` 并回车，即可快速清空当前屏幕的对话记录。
-5. **退出应用**：你可以点击屏幕右上角系统托盘（状态栏）的 CodeWalkers 图标，然后选择 `Quit` 完全退出程序。
+### 1. Interacting with Characters
+- **Drag & Drop**: Click and hold the character's solid body to drag them anywhere on your screen. They will resume walking from their new location.
+- **Click-Through**: The transparent areas around the character are fully click-through. You can interact with your desktop or applications behind the character without any interference.
+
+### 2. The AI Terminal (Session Panel)
+- **Open/Close**: Simply click on the character to open its associated AI terminal panel. Click anywhere outside the panel to hide it.
+- **Switch Providers**: At the top left of the terminal, use the dropdown to switch between supported AI CLI providers (e.g., Claude, Gemini, Copilot). If a provider is not installed, the app will prompt you to install it.
+- **Chat & Commands**: 
+  - Type your messages in the input box and press `Enter` to chat.
+  - Type `/clear` to clear the current terminal history.
+  - Click the **Copy** icon at the top right to copy the AI's last response.
+  - Click the **Refresh** icon to restart the current terminal session.
+- **Thinking Bubbles**: While the AI is processing your request, you'll see a real-time thinking bubble above the character's head, keeping you informed of its progress.
+
+### 3. System Tray & Customization
+- Look for the **CodeWalkers** icon in your system tray (menu bar/taskbar). Click it to access the menu:
+  - **Characters**: Toggle the visibility of Ethan and Luna independently.
+  - **Themes**: Switch between 4 terminal themes: Midnight, Peach, Cloud, and Moss.
+  - **Size**: Adjust the character scale (Small / Medium / Large).
+  - **Sound Effects**: Enable or disable interaction sounds.
+  - **Quit**: Exit the application safely.
 
 ---
 
-## 📂 项目结构 (Structure)
+## 📂 Structure
 
-- `src/` - React 前端代码 (UI, IPC 交互, 拖拽逻辑, 动画渲染, 主题系统)
-- `src-tauri/` - Rust 后端代码 (窗口管理, PTY 终端进程挂载, 透明度控制, 系统托盘)
-- `public/` - 静态资源 (视频动画 `walk-ethan-01.mov`, 音效文件 `sounds/`)
-- `.github/workflows/` - CI/CD 自动化工作流程
+- `src/` - React frontend code (UI, IPC communication, drag logic, animation rendering, theme system)
+- `src-tauri/` - Rust backend code (Window management, PTY terminal process mounting, transparency control, system tray)
+- `public/` - Static assets (video animations `walk-ethan-01.mov`, sound files `sounds/`)
+- `.github/workflows/` - CI/CD automation workflows
 
 ---
 
-## 📄 开源协议 (License)
+## 💖 Acknowledgments / Inspired By
 
-本项目采用 [MIT License](./LICENSE) 开源协议。欢迎自由使用、修改和分发。
+This project was heavily inspired by the amazing [lil-agents](https://github.com/ryanstephen/lil-agents) created by [ryanstephen](https://github.com/ryanstephen). 
+While `lil-agents` is a brilliant native macOS application, it is limited to the Apple ecosystem. As I was exploring the capabilities of Tauri, I decided to create **CodeWalkers** to bring this delightful "desktop companion + AI terminal" experience to a true cross-platform environment (Windows / Linux / macOS) using **Tauri v2 and Rust**. 
+
+Huge thanks to the original creator for the wonderful idea!
+
+---
+
+## 📄 License
+
+This project is licensed under the [MIT License](./LICENSE). You are free to use, modify, and distribute it.
