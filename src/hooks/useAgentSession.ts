@@ -299,6 +299,20 @@ export function useAgentSession(sessionId: string, isSoundsEnabled: boolean) {
 
         if (trimmedLine.includes("Keychain initialization encountered an error")) continue;
 
+        // Copilot CLI / Aider telemetry and usage stats usually print to stderr
+        const isTelemetry = 
+          trimmedLine.startsWith("Total usage est:") ||
+          trimmedLine.startsWith("API time spent:") ||
+          trimmedLine.startsWith("Total session time:") ||
+          trimmedLine.startsWith("Total code changes:") ||
+          trimmedLine.startsWith("Breakdown by AI model:") ||
+          trimmedLine.match(/^claude-[\w.-]+\s+\d+(?:\.\d+)?[kK]? in, \d+ out/i);
+
+        if (isTelemetry) {
+          setSessionOutput(prev => [...prev, `[System]: ${trimmedLine}`]);
+          continue;
+        }
+
         // Output real stderr errors to console or UI
         setSessionOutput(prev => {
           const newOut = [...prev];

@@ -83,6 +83,16 @@ pub fn send_message(app: AppHandle, state: State<'_, SessionState>, session_id: 
     }
 
     let mut cmd = Command::new(&binary_path);
+
+    // Set the working directory to the project root instead of src-tauri
+    let current_dir = std::env::current_dir().unwrap_or_default();
+    let is_src_tauri = current_dir.file_name().map_or(false, |name| name == "src-tauri");
+    let workspace_dir = if is_src_tauri {
+        current_dir.parent().unwrap_or(&current_dir).to_path_buf()
+    } else {
+        current_dir.clone()
+    };
+    cmd.current_dir(&workspace_dir);
     
     // Inject actual system environment variables
     let shell_envs = get_shell_env();
@@ -108,7 +118,6 @@ pub fn send_message(app: AppHandle, state: State<'_, SessionState>, session_id: 
     // 1. Check current directory (e.g., when running compiled app)
     // 2. Check parent directory (e.g., when running via tauri dev from src-tauri)
     // 3. Fallback to user's HOME directory
-    let current_dir = std::env::current_dir().unwrap_or_default();
     let env_file_local = current_dir.join(".codewalkers.env");
     let env_file_parent = current_dir.parent().unwrap_or(&current_dir).join(".codewalkers.env");
     
