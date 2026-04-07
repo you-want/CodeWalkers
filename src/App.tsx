@@ -4,8 +4,8 @@ import "./App.css";
 
 function App() {
   const {
-    showBruce,
-    showJazz,
+    showEthan,
+    showLuna,
     theme,
     setTheme,
     size,
@@ -15,9 +15,9 @@ function App() {
 
   return (
     <main className={`container theme-${theme}`}>
-      {showBruce && (
+      {showEthan && (
         <CharacterWidget
-          characterName="bruce"
+          characterName="ethan"
           size={size}
           initialX={window.innerWidth / 2 - 150}
           setIsSelectOpen={setIsSelectOpen}
@@ -26,9 +26,9 @@ function App() {
           isSoundsEnabled={isSoundsEnabled}
         />
       )}
-      {showJazz && (
+      {showLuna && (
         <CharacterWidget
-          characterName="jazz"
+          characterName="luna"
           size={size}
           initialX={window.innerWidth / 2 + 50}
           setIsSelectOpen={setIsSelectOpen}

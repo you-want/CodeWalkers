@@ -5,8 +5,8 @@ import { listen } from "@tauri-apps/api/event";
 export type ThemeName = "midnight" | "peach" | "cloud" | "moss";
 
 export function useAppConfig() {
-  const [showBruce, setShowBruce] = useState(true);
-  const [showJazz, setShowJazz] = useState(true);
+  const [showEthan, setShowEthan] = useState(true);
+  const [showLuna, setShowLuna] = useState(true);
   const [theme, setTheme] = useState<ThemeName>("midnight");
   const [isSelectOpen, setIsSelectOpen] = useState(false);
 
@@ -39,11 +39,11 @@ export function useAppConfig() {
 
         if (target.closest('.agent-character')) {
           const charEl = target.closest('.agent-character') as HTMLElement;
-          const video = charEl.querySelector('video');
-          if (video) {
-            const rect = video.getBoundingClientRect();
-            const videoX = x - rect.left;
-            const videoY = y - rect.top;
+          const media = charEl.querySelector('video') || charEl.querySelector('img');
+          if (media) {
+            const rect = media.getBoundingClientRect();
+            const mediaX = x - rect.left;
+            const mediaY = y - rect.top;
 
             if (rect.width > 0 && rect.height > 0) {
               if (!pixelCanvasRef.current) {
@@ -55,21 +55,28 @@ export function useAppConfig() {
 
               const ctx = pixelCtxRef.current;
               if (ctx) {
-              const scaleX = video.videoWidth / rect.width;
-              const scaleY = video.videoHeight / rect.height;
-              
-              ctx.drawImage(
-                video, 
-                videoX * scaleX, videoY * scaleY, 1, 1,
-                0, 0, 1, 1
-              );
-              
-              const pixel = ctx.getImageData(0, 0, 1, 1).data;
-              const alpha = pixel[3];
-              
-              if (alpha > 10) {
-                shouldIgnore = false;
-              }
+                const isVideo = media.tagName.toLowerCase() === 'video';
+                const naturalWidth = isVideo ? (media as HTMLVideoElement).videoWidth : (media as HTMLImageElement).naturalWidth;
+                const naturalHeight = isVideo ? (media as HTMLVideoElement).videoHeight : (media as HTMLImageElement).naturalHeight;
+                
+                if (naturalWidth > 0 && naturalHeight > 0) {
+                  const scaleX = naturalWidth / rect.width;
+                  const scaleY = naturalHeight / rect.height;
+                  
+                  ctx.clearRect(0, 0, 1, 1);
+                  ctx.drawImage(
+                    media, 
+                    mediaX * scaleX, mediaY * scaleY, 1, 1,
+                    0, 0, 1, 1
+                  );
+                  
+                  const pixel = ctx.getImageData(0, 0, 1, 1).data;
+                  const alpha = pixel[3];
+                  
+                  if (alpha > 10) {
+                    shouldIgnore = false;
+                  }
+                }
               }
             }
           }
@@ -122,8 +129,8 @@ export function useAppConfig() {
       const id = event.payload;
       console.log("Tray event received in React:", id);
       
-      if (id === "char_bruce") setShowBruce(prev => !prev);
-      if (id === "char_jazz") setShowJazz(prev => !prev);
+      if (id === "char_ethan") setShowEthan(prev => !prev);
+      if (id === "char_luna") setShowLuna(prev => !prev);
       if (id === "style_midnight") setTheme("midnight");
       if (id === "style_peach") setTheme("peach");
       if (id === "style_cloud") setTheme("cloud");
@@ -150,8 +157,8 @@ export function useAppConfig() {
   }, []);
 
   return {
-    showBruce,
-    showJazz,
+    showEthan,
+    showLuna,
     theme,
     setTheme,
     size,

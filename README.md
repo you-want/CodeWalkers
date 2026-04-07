@@ -24,7 +24,7 @@
 - **🖥️ 沉浸式 AI 终端 (PTY)**：内置基于 `portable-pty` 的真实系统终端会话，完美集成 Gemini CLI，你可以直接在应用内发送消息，并得到实时的思考气泡和打字机反馈。
 - **🎵 原生音效反馈**：发送消息、接收回复以及角色巡游到达终点时，都会有清脆的提示音。
 - **🎨 多角色与主题系统**：
-  - 支持一键切换角色（Bruce / Jazz）。
+  - 支持一键切换角色（Ethan / Luna）。
   - 支持四种不同的终端主题风格：`Midnight` (默认)、`Peach`、`Cloud`、`Moss`。
 - **🚀 极低资源占用**：得益于 Tauri 和 Rust 的组合，它的内存占用极小，相比 Electron 更加轻量。
 
@@ -89,7 +89,7 @@ pnpm tauri build
 
 - `src/` - React 前端代码 (UI, IPC 交互, 拖拽逻辑, 动画渲染, 主题系统)
 - `src-tauri/` - Rust 后端代码 (窗口管理, PTY 终端进程挂载, 透明度控制, 系统托盘)
-- `public/` - 静态资源 (视频动画 `walk-bruce-01.mov`, 音效文件 `sounds/`)
+- `public/` - 静态资源 (视频动画 `walk-ethan-01.mov`, 音效文件 `sounds/`)
 - `.github/workflows/` - CI/CD 自动化工作流程
 
 ---

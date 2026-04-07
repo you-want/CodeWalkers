@@ -85,18 +85,18 @@ describe("useAppConfig", () => {
     const { result } = renderHook(() => useAppConfig());
     await waitFor(() => expect(mockListen).toHaveBeenCalled());
 
-    expect(result.current.showBruce).toBe(true);
-    expect(result.current.showJazz).toBe(true);
+    expect(result.current.showEthan).toBe(true);
+    expect(result.current.showLuna).toBe(true);
 
     act(() => {
-      trayListener?.({ payload: "char_bruce" });
+      trayListener?.({ payload: "char_ethan" });
     });
-    expect(result.current.showBruce).toBe(false);
+    expect(result.current.showEthan).toBe(false);
 
     act(() => {
-      trayListener?.({ payload: "char_jazz" });
+      trayListener?.({ payload: "char_luna" });
     });
-    expect(result.current.showJazz).toBe(false);
+    expect(result.current.showLuna).toBe(false);
 
     act(() => {
       trayListener?.({ payload: "disp_primary" });

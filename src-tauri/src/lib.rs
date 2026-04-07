@@ -124,8 +124,8 @@ fn set_display_mode(app: tauri::AppHandle, mode: &str) -> Result<(), String> {
 pub fn run() {
     tauri::Builder::default()
         .setup(|app| {
-            let char_bruce = CheckMenuItemBuilder::new("Bruce").id("char_bruce").accelerator("CmdOrCtrl+1").checked(true).build(app)?;
-            let char_jazz = CheckMenuItemBuilder::new("Jazz").id("char_jazz").accelerator("CmdOrCtrl+2").checked(true).build(app)?;
+            let char_ethan = CheckMenuItemBuilder::new("Ethan").id("char_ethan").accelerator("CmdOrCtrl+1").checked(true).build(app)?;
+            let char_luna = CheckMenuItemBuilder::new("Luna").id("char_luna").accelerator("CmdOrCtrl+2").checked(true).build(app)?;
             
             let sounds_item = CheckMenuItemBuilder::new("Sounds").id("sounds").checked(true).build(app)?;
             
@@ -206,8 +206,8 @@ pub fn run() {
             let quit_i = MenuItemBuilder::with_id("quit", "Quit").accelerator("CmdOrCtrl+Q").build(app)?;
 
             let menu = MenuBuilder::new(app)
-                .item(&char_bruce)
-                .item(&char_jazz)
+                .item(&char_ethan)
+                .item(&char_luna)
                 .separator()
                 .item(&sounds_item)
                 .item(&provider_submenu)
@@ -218,18 +218,18 @@ pub fn run() {
                 .item(&quit_i)
                 .build()?;
 
-            let chars = vec![char_bruce, char_jazz];
+            let chars = vec![char_ethan, char_luna];
             let providers = provider_items;
             let sizes = vec![size_small, size_medium, size_large];
             let styles = vec![style_midnight, style_peach, style_cloud, style_moss];
             let sounds_item_clone = sounds_item.clone();
             
-            let bruce_checked = std::sync::Arc::new(std::sync::Mutex::new(true));
-            let jazz_checked = std::sync::Arc::new(std::sync::Mutex::new(true));
+            let ethan_checked = std::sync::Arc::new(std::sync::Mutex::new(true));
+            let luna_checked = std::sync::Arc::new(std::sync::Mutex::new(true));
             let sounds_checked = std::sync::Arc::new(std::sync::Mutex::new(true));
             
-            let bruce_c = bruce_checked.clone();
-            let jazz_c = jazz_checked.clone();
+            let ethan_c = ethan_checked.clone();
+            let luna_c = luna_checked.clone();
             let sounds_c = sounds_checked.clone();
             
             let _tray = TrayIconBuilder::with_id("main-tray")
@@ -239,19 +239,19 @@ pub fn run() {
                     let id = event.id.as_ref();
                     println!("Tray menu clicked: '{}'", id);
                     
-                    if id == "char_bruce" {
-                        let mut b = bruce_c.lock().unwrap();
+                    if id == "char_ethan" {
+                        let mut b = ethan_c.lock().unwrap();
                         *b = !*b;
                         for c in &chars {
-                            if c.id().0 == "char_bruce" {
+                            if c.id().0 == "char_ethan" {
                                 let _ = c.set_checked(*b);
                             }
                         }
-                    } else if id == "char_jazz" {
-                        let mut j = jazz_c.lock().unwrap();
+                    } else if id == "char_luna" {
+                        let mut j = luna_c.lock().unwrap();
                         *j = !*j;
                         for c in &chars {
-                            if c.id().0 == "char_jazz" {
+                            if c.id().0 == "char_luna" {
                                 let _ = c.set_checked(*j);
                             }
                         }

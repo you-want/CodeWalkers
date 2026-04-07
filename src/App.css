@@ -132,6 +132,16 @@ body {
   transition: transform 0.1s;
 }
 
+@keyframes walk-bounce {
+  0% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+  100% { transform: translateY(0); }
+}
+
+.walking-animation {
+  animation: walk-bounce 0.5s infinite ease-in-out;
+}
+
 .bubble {
   position: absolute;
   bottom: calc(100% - 5px); /* Adjusted to be closer to the character */

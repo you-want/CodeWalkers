@@ -78,13 +78,13 @@ export function useCharacterMovement({
   }, [isDragging, dragOffset]);
 
   const videoDuration = 10.0;
-  const accelStart = characterName === "bruce" ? 3.0 : 3.9;
-  const fullSpeedStart = characterName === "bruce" ? 3.75 : 4.5;
+  const accelStart = characterName === "ethan" ? 3.0 : 3.9;
+  const fullSpeedStart = characterName === "ethan" ? 3.75 : 4.5;
   const decelStart = 8.0;
-  const walkStop = characterName === "bruce" ? 8.5 : 8.75;
+  const walkStop = characterName === "ethan" ? 8.5 : 8.75;
   useEffect(() => {
     let animationFrameId: number;
-    const walkAmountRange = characterName === "bruce" ? [0.4, 0.65] : [0.35, 0.6];
+    const walkAmountRange = characterName === "ethan" ? [0.4, 0.65] : [0.35, 0.6];
     const movementPosition = (videoTime: number) => {
       const dIn = fullSpeedStart - accelStart;
       const dLin = decelStart - fullSpeedStart;

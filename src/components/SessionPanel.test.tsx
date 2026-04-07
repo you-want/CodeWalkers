@@ -13,7 +13,7 @@ const provider: ProviderStatus = {
 
 function renderSessionPanel(overrides: Partial<ComponentProps<typeof SessionPanel>> = {}) {
   const defaultProps: ComponentProps<typeof SessionPanel> = {
-    characterName: "bruce",
+    characterName: "ethan",
     activeProviderName: "Gemini",
     providers: [provider],
     setActiveProviderName: vi.fn(),

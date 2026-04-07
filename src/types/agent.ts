@@ -5,5 +5,5 @@ export interface ProviderStatus {
   path: string | null;
 }
 
-export type CharacterName = "bruce" | "jazz";
+export type CharacterName = "ethan" | "luna";
 export type CharacterSize = "small" | "medium" | "large";

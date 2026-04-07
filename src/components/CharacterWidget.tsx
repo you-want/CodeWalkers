@@ -56,6 +56,8 @@ export function CharacterWidget({
     isPopoverOpen,
   });
 
+  const [mediaError, setMediaError] = useState(false);
+
   useEffect(() => {
     if (!activeProviderName && providers.length > 0) {
       const firstInstalled = providers.find((p) => p.is_installed);
@@ -133,16 +135,28 @@ export function CharacterWidget({
             transformOrigin: 'bottom center',
           }}
         >
-        <video 
-          ref={videoRef}
-          src={`/walk-${characterName}-01.mov`}
-          autoPlay 
-          loop 
-          muted 
-          playsInline 
-          className="agent-video"
-          style={{ width: '100%', height: '100%', objectFit: 'contain', pointerEvents: 'none' }}
-        />
+        {!mediaError ? (
+          <img 
+            src={`/walk-${characterName}-01.png`}
+            onError={() => setMediaError(true)}
+            className={`agent-video ${hasMoved || isDragging ? 'walking-animation' : ''}`}
+            style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+            draggable={false}
+            alt={characterName}
+          />
+        ) : (
+          <video 
+            ref={videoRef}
+            src={`/walk-${characterName}-01.mov`}
+            autoPlay 
+            loop 
+            muted 
+            playsInline 
+            className="agent-video"
+            style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+            draggable={false}
+          />
+        )}
       </div>
       {bubbleText && (
         <div className="bubble">

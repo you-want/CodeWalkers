@@ -1,3 +1,14 @@
+# Python virtual environments & build artifacts
+venv/
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Local utility scripts
+scripts/
+
 # Logs
 logs
 *.log
