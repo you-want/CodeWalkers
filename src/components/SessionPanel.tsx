@@ -44,8 +44,15 @@ function HeaderSelectors({
   const selectedProvider = activeProviderName || (providers.length > 0 ? providers[0].name : "");
 
   return (
-    <div className="popover-header-title" style={{ display: "flex", alignItems: "center", gap: 8 }}>
-      <Select value={selectedProvider} onValueChange={onProviderChange} onOpenChange={setIsSelectOpen}>
+    <div 
+      className="popover-header-title" 
+      style={{ display: "flex", alignItems: "center", gap: 8 }}
+    >
+      <Select 
+        value={selectedProvider} 
+        onValueChange={onProviderChange} 
+        onOpenChange={setIsSelectOpen}
+      >
         <SelectTrigger className="w-[140px] h-7 text-xs bg-transparent border-none shadow-none focus:ring-0 px-0 hover:bg-black/5 rounded">
           <SelectValue placeholder="Select Provider" />
         </SelectTrigger>
@@ -57,7 +64,11 @@ function HeaderSelectors({
           ))}
         </SelectContent>
       </Select>
-      <Select value={theme} onValueChange={onThemeChange} onOpenChange={setIsSelectOpen}>
+      <Select 
+        value={theme} 
+        onValueChange={onThemeChange} 
+        onOpenChange={setIsSelectOpen}
+      >
         <SelectTrigger className="w-[110px] h-7 text-xs bg-transparent border-none shadow-none focus:ring-0 px-0 hover:bg-black/5 rounded">
           <SelectValue placeholder="Style" />
         </SelectTrigger>
