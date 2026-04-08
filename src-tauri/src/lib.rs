@@ -70,10 +70,18 @@ fn get_mouse_pos(app: tauri::AppHandle, window: tauri::Window) -> Result<(f64, f
 
 #[tauri::command]
 fn is_devtools_open(app: tauri::AppHandle) -> Result<bool, String> {
-    if let Some(window) = app.get_webview_window("main") {
-        Ok(window.is_devtools_open())
-    } else {
-        Err("Main window not found".to_string())
+    #[cfg(any(debug_assertions, feature = "devtools"))]
+    {
+        if let Some(window) = app.get_webview_window("main") {
+            Ok(window.is_devtools_open())
+        } else {
+            Err("Main window not found".to_string())
+        }
+    }
+    #[cfg(not(any(debug_assertions, feature = "devtools")))]
+    {
+        let _ = app;
+        Ok(false)
     }
 }
 
