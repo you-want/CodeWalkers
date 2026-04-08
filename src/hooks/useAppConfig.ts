@@ -90,6 +90,8 @@ export function useAppConfig() {
 
           const isInteractive = target.closest('.bubble') || 
                                 target.closest('.popover-panel') || 
+                                target.closest('.context-menu') ||
+                                target.closest('.settings-modal') ||
                                 target.closest('[data-radix-popper-content-wrapper]') ||
                                 target.closest('[role="listbox"]') ||
                                 target.closest('[data-radix-select-content]') ||

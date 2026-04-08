@@ -156,7 +156,8 @@ body {
   max-width: 250px;
   text-align: center;
   animation: bubble-fade-in 0.3s ease-out forwards;
-  white-space: nowrap;
+  white-space: pre-wrap;
+  word-break: break-word;
   z-index: 1001; /* Ensure bubble is above the popover */
 }
 

@@ -16,6 +16,7 @@ export default defineConfig(async () => ({
     environment: "happy-dom",
     setupFiles: "./src/test/setup.ts",
     globals: true,
+    exclude: ["e2e/**", "node_modules/**"],
     coverage: {
       provider: "v8",
       reporter: ["text", "html"],

@@ -4,6 +4,10 @@ import { useAgentSession } from "../hooks/useAgentSession";
 import { useCharacterMovement } from "../hooks/useCharacterMovement";
 import type { ThemeName } from "../hooks/useAppConfig";
 import { SessionPanel } from "./SessionPanel";
+import { CharacterBubble } from "./CharacterBubble";
+import { StatusSettingsModal } from "./StatusSettingsModal";
+import { useStatusSettingsStore } from "../store/useStatusSettingsStore";
+import { useUserStatus } from "../hooks/useUserStatus";
 import type { CharacterName, CharacterSize } from "../types/agent";
 
 interface CharacterWidgetProps {
@@ -57,6 +61,17 @@ export function CharacterWidget({
   });
 
   const [mediaError, setMediaError] = useState(false);
+  const { config, saveConfig, activeStatusId, setActiveStatusId, statusMessage: hookStatusMessage } = useUserStatus(characterName);
+  
+  // Use hook's statusMessage
+  const finalStatusMessage = hookStatusMessage;
+  
+  const [contextMenuVisible, setContextMenuVisible] = useState(false);
+
+  const handleContextMenu = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setContextMenuVisible(true);
+  };
 
   useEffect(() => {
     if (!activeProviderName && providers.length > 0) {
@@ -89,20 +104,24 @@ export function CharacterWidget({
                              target.closest('[role="listbox"]') ||
                              target.closest('[data-radix-select-content]') ||
                              target.closest('.chat-input-container') ||
+                             target.closest('.context-menu') ||
+                             target.closest('.settings-modal') ||
                              target.closest('div[role="dialog"]');
 
       if (!isInsideWidget) {
           setIsPopoverOpen(false);
+          setContextMenuVisible(false);
           // We do not set isSessionActive(false) so the session remains alive in the background
         }
       };
 
-    if (isPopoverOpen || isSessionActive) {
+    if (isPopoverOpen || isSessionActive || contextMenuVisible) {
       document.addEventListener('mousedown', handleGlobalClick);
       
       const unlistenFocus = getCurrentWindow().onFocusChanged(({ payload: focused }) => {
         if (!focused) {
           setIsPopoverOpen(false);
+          setContextMenuVisible(false);
         }
       });
       
@@ -114,7 +133,7 @@ export function CharacterWidget({
     return () => {
       document.removeEventListener('mousedown', handleGlobalClick);
     };
-  }, [isPopoverOpen, isSessionActive, characterName]);
+  }, [isPopoverOpen, isSessionActive, characterName, contextMenuVisible]);
 
   return (
     <div 
@@ -129,10 +148,12 @@ export function CharacterWidget({
     >
       <div 
           className={`agent-character agent-character-${characterName} ${isDragging ? 'agent-dragging' : ''}`} 
-          onMouseUp={() => {
-            // Toggle popover only if no drag occurred
-            if (!hasMoved) {
+          onContextMenu={handleContextMenu}
+          onMouseUp={(e) => {
+            // Only toggle popover on left click (button 0) and if no drag occurred
+            if (e.button === 0 && !hasMoved) {
               setIsPopoverOpen(prev => !prev);
+              setContextMenuVisible(false);
             }
           }}
           onMouseDown={handleMouseDown}
@@ -166,11 +187,125 @@ export function CharacterWidget({
           />
         )}
       </div>
-      {bubbleText && (
-        <div className="bubble">
-          {bubbleText}
+      <CharacterBubble text={bubbleText || finalStatusMessage} />
+
+      {contextMenuVisible && (
+        <div 
+          className="context-menu"
+          style={{
+            position: 'absolute',
+            left: 'calc(100% - 5px)',
+            top: '0px',
+            backgroundColor: 'var(--popover-bg, #1a1a1a)',
+            border: '1px solid var(--border-color, #333)',
+            borderRadius: '8px',
+            padding: '4px',
+            zIndex: 1000,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '2px',
+            minWidth: '120px',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.5)',
+            color: 'var(--text-color, #fff)',
+            fontSize: '12px'
+          }}
+        >
+          <div className="context-menu-title" style={{ padding: '4px 8px', opacity: 0.5, fontSize: '10px', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>
+            User Status
+          </div>
+          {config.map((item: import('../types/userStatus').StatusItemConfig) => {
+            const isActive = activeStatusId === item.id;
+            return (
+              <button
+                key={item.id}
+                style={{
+                  background: isActive ? 'var(--hover-bg, rgba(255,255,255,0.15))' : 'transparent',
+                  border: 'none',
+                  color: isActive ? '#fff' : 'inherit',
+                  fontWeight: isActive ? 600 : 400,
+                  padding: '6px 8px',
+                  textAlign: 'left',
+                  cursor: 'pointer',
+                  borderRadius: '4px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  whiteSpace: 'nowrap'
+                }}
+                onMouseEnter={(e) => { 
+                  if (!isActive) e.currentTarget.style.backgroundColor = 'var(--hover-bg, rgba(255,255,255,0.1))'; 
+                }}
+                onMouseLeave={(e) => { 
+                  if (!isActive) e.currentTarget.style.backgroundColor = 'transparent'; 
+                }}
+                onMouseUp={(e) => {
+                  e.stopPropagation();
+                  setActiveStatusId(item.id);
+                  setContextMenuVisible(false);
+                }}
+              >
+                <span>{item.icon} {item.label}</span>
+                {isActive && (
+                  <span style={{ fontSize: '10px', marginLeft: '8px' }}>✓</span>
+                )}
+              </button>
+            );
+          })}
+          <button
+            style={{
+              background: 'transparent',
+              border: 'none',
+              color: 'inherit',
+              padding: '6px 8px',
+              textAlign: 'left',
+              cursor: 'pointer',
+              borderRadius: '4px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              whiteSpace: 'nowrap'
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'var(--hover-bg, rgba(255,255,255,0.1))'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; }}
+            onMouseUp={(e) => {
+              e.stopPropagation();
+              setActiveStatusId(null);
+              setContextMenuVisible(false);
+            }}
+          >
+            <span>Clear Status</span>
+            {activeStatusId === null && (
+              <span style={{ fontSize: '10px', marginLeft: '8px' }}>✓</span>
+            )}
+          </button>
+          <div style={{ height: '1px', backgroundColor: '#333', margin: '4px 0' }} />
+          <button
+            style={{
+              background: 'transparent',
+              border: 'none',
+              color: '#999',
+              padding: '6px 8px',
+              textAlign: 'left',
+              cursor: 'pointer',
+              borderRadius: '4px',
+              display: 'flex',
+              alignItems: 'center',
+              whiteSpace: 'nowrap'
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'var(--hover-bg, rgba(255,255,255,0.1))'; e.currentTarget.style.color = '#fff'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.color = '#999'; }}
+            onMouseUp={(e) => {
+              e.stopPropagation();
+              setContextMenuVisible(false);
+              useStatusSettingsStore.getState().open(config, saveConfig, characterName);
+            }}
+          >
+            <span>⚙️ Settings...</span>
+          </button>
         </div>
       )}
+
+      <StatusSettingsModal characterName={characterName} />
 
       <div style={{ display: isPopoverOpen ? 'block' : 'none' }}>
         <SessionPanel

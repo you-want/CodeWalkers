@@ -105,6 +105,18 @@ The compiled binaries will be generated in the `src-tauri/target/release/bundle`
   - **Sound Effects**: Enable or disable interaction sounds.
   - **Quit**: Exit the application safely.
 
+### 4. Custom Status & Reminders
+- Right-click on any character to open the context menu.
+- Click **"⚙️ 自定义状态设置..."** (Custom Status Settings) to open the configuration modal.
+- Here you can define your current status (e.g., Working, Break, Lunch) with custom icons and messages.
+- You can also set up interval or fixed-time reminders for each status, and the character will notify you via a speech bubble when the time comes!
+- **Component Props & Usage:** The `StatusSettingsModal` is globally managed via Zustand (`useStatusSettingsStore`) and does not require props. To trigger it from anywhere:
+  ```tsx
+  import { useStatusSettingsStore } from '@/store/useStatusSettingsStore';
+  // ...
+  const openModal = () => useStatusSettingsStore.getState().open(currentConfig, handleSave);
+  ```
+
 ---
 
 ## 📂 Structure
