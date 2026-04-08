@@ -3,7 +3,7 @@ use tauri::{Manager, Emitter, menu::{MenuBuilder, MenuItemBuilder, CheckMenuItem
 mod providers;
 mod session;
 
-// Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
+// Learn more about Tauri commands at https://tauri.app/develop/calling-rust/ 
 #[tauri::command]
 fn greet(name: &str) -> String {
     format!("Hello, {}! You've been greeted from Rust!", name)
