@@ -153,6 +153,7 @@ body {
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
   font-weight: 500;
   color: #333;
+  width: max-content; /* Allow bubble to expand to fit text */
   max-width: 250px;
   text-align: center;
   animation: bubble-fade-in 0.3s ease-out forwards;
