@@ -3,7 +3,7 @@
   <h1>CodeWalkers</h1>
   <p><strong>A Desktop Virtual Companion powered by Tauri + React + Rust</strong></p>
 
-  <img src="./public/product2.gif" width="800" alt="CodeWalkers Product Screenshot" style="border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); margin: 20px 0;" />
+  <img src="./public/product.gif" width="800" alt="CodeWalkers Product Screenshot" style="border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); margin: 20px 0;" />
 
   <p>
     <a href="./README_zh.md">中文</a> | <span>English</span>
