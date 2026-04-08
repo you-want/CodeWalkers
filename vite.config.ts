@@ -49,4 +49,29 @@ export default defineConfig(async () => ({
       ignored: ["**/src-tauri/**"],
     },
   },
+  build: {
+    // Tauri supports es2021
+    target: process.env.TAURI_ENV_PLATFORM == "windows" ? "chrome105" : "esnext",
+    // don't minify for debug builds
+    minify: !process.env.TAURI_ENV_DEBUG ? "esbuild" : false,
+    // produce sourcemaps for debug builds
+    sourcemap: !!process.env.TAURI_ENV_DEBUG,
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes('node_modules')) {
+            if (id.includes('react') || id.includes('zustand')) {
+              return 'vendor';
+            }
+            if (id.includes('@radix-ui') || id.includes('lucide-react') || id.includes('tailwind-merge') || id.includes('clsx')) {
+              return 'ui';
+            }
+            if (id.includes('@tauri-apps')) {
+              return 'tauri';
+            }
+          }
+        }
+      }
+    }
+  } as import('vite').BuildOptions,
 }));
