@@ -36,6 +36,14 @@ Powered by the robust **Tauri v2** architecture, it leverages **Rust** for high-
 
 ---
 
+## 📚 Documentation
+
+For detailed technical architecture, component interaction loops, and further references, please visit the project documentation:
+
+👉 **[DeepWiki Documentation: CodeWalkers](https://deepwiki.com/you-want/CodeWalkers)**
+
+---
+
 ## 🛠️ Getting Started
 
 ### Prerequisites
